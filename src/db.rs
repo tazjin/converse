@@ -33,3 +33,25 @@ impl Handler<ListThreads> for DbExecutor {
         Ok(results)
     }
 }
+
+/// Message used to fetch a specific thread. Returns the thread and
+/// its posts.
+pub struct GetThread(pub i32);
+
+impl Message for GetThread {
+    type Result = Result<(Thread, Vec<Post>), Error>;
+}
+
+impl Handler<GetThread> for DbExecutor {
+    type Result = <GetThread as Message>::Result;
+
+    fn handle(&mut self, msg: GetThread, _: &mut Self::Context) -> Self::Result {
+        use schema::threads::dsl::*;
+        let conn = self.0.get().unwrap();
+        let result: Thread = threads
+            .find(msg.0).first(&conn)
+            .expect("Error loading thread");
+
+        Ok((result, vec![]))
+    }
+}
