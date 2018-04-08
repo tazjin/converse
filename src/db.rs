@@ -1,6 +1,7 @@
 //! This module implements the database connection actor.
 
 use actix::prelude::*;
+use diesel;
 use diesel::prelude::*;
 use diesel::r2d2::{Pool, ConnectionManager};
 use models::*;
@@ -55,5 +56,26 @@ impl Handler<GetThread> for DbExecutor {
         let post_list = Post::belonging_to(&thread_result).load::<Post>(&conn)?;
 
         Ok((thread_result, post_list))
+    }
+}
+
+/// Message used to create a new thread
+pub struct CreateThread(pub NewThread);
+
+impl Message for CreateThread {
+    type Result = Result<Thread>;
+}
+
+impl Handler<CreateThread> for DbExecutor {
+    type Result = <CreateThread as Message>::Result;
+
+    fn handle(&mut self, msg: CreateThread, _: &mut Self::Context) -> Self::Result {
+        use schema::threads;
+
+        let conn = self.0.get()?;
+
+        Ok(diesel::insert_into(threads::table)
+            .values(&msg.0)
+            .get_result(&conn)?)
     }
 }

@@ -17,3 +17,10 @@ pub struct Post {
     pub body: String,
     pub posted: DateTime<Utc>,
 }
+
+#[derive(Insertable)]
+#[table_name="threads"]
+pub struct NewThread {
+    pub title: String,
+    pub body: String,
+}
