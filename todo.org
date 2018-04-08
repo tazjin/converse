@@ -1,0 +1,4 @@
+* TODO Configurable number of DB workers
+* TODO Pin *-versions in cargo.toml
+* TODO Match certain types of Diesel errors (esp. for "not found")
+* TODO Sketch out categories vs. tags system
