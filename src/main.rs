@@ -42,6 +42,14 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use std::env;
 use handlers::*;
 
+fn config(name: &str) -> String {
+    env::var(name).expect(&format!("{} must be set", name))
+}
+
+fn config_default(name: &str, default: &str) -> String {
+    env::var(name).unwrap_or(default.into())
+}
+
 fn main() {
     env_logger::init();
 
@@ -49,27 +57,47 @@ fn main() {
     let sys = actix::System::new("converse");
 
     info!("Initialising database connection pool ...");
-    let db_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
+    let db_url = config("DATABASE_URL");
 
     let manager = ConnectionManager::<PgConnection>::new(db_url);
     let pool = Pool::builder().build(manager).expect("Failed to initialise DB pool");
 
     let db_addr = SyncArbiter::start(2, move || DbExecutor(pool.clone()));
 
+    info!("Initialising OIDC integration ...");
+    let oidc_url = config("OIDC_DISCOVERY_URL");
+    let oidc_config = oidc::load_oidc(&oidc_url)
+        .expect("Failed to retrieve OIDC discovery document");
+
+    let oidc = oidc::OidcExecutor {
+        oidc_config,
+        client_id: config("OIDC_CLIENT_ID"),
+        client_secret: config("OIDC_CLIENT_SECRET"),
+        redirect_uri: format!("{}/oidc/callback", config("BASE_URL")),
+    };
+
+    let oidc_addr: Addr<Syn, oidc::OidcExecutor> = oidc.start();
+
     info!("Initialising HTTP server ...");
-    let bind_host = env::var("CONVERSE_BIND_HOST").unwrap_or("127.0.0.1:4567".into());
+    let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
 
     server::new(move || {
         let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
         let tera = compile_templates!(template_path);
+        let state = AppState {
+            db: db_addr.clone(),
+            oidc: oidc_addr.clone(),
+            tera,
+        };
 
-        App::with_state(AppState { db: db_addr.clone(), tera })
+        App::with_state(state)
             .middleware(middleware::Logger::default())
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/submit", |r| r.method(Method::POST).with2(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with2(reply_thread))
-            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))})
+            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
+            .resource("/oidc/login", |r| r.method(Method::GET).with(login))
+            .resource("/oidc/callback", |r| r.method(Method::POST).with2(callback))})
         .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
         .start();
 
