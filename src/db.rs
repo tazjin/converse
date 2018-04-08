@@ -47,11 +47,15 @@ impl Handler<GetThread> for DbExecutor {
 
     fn handle(&mut self, msg: GetThread, _: &mut Self::Context) -> Self::Result {
         use schema::threads::dsl::*;
+
         let conn = self.0.get().unwrap();
-        let result: Thread = threads
+        let thread_result: Thread = threads
             .find(msg.0).first(&conn)
             .expect("Error loading thread");
 
-        Ok((result, vec![]))
+        let post_list = Post::belonging_to(&thread_result)
+            .load::<Post>(&conn).expect("Error loading posts for thread");
+
+        Ok((thread_result, post_list))
     }
 }

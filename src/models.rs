@@ -1,6 +1,7 @@
 use chrono::prelude::{DateTime, Utc};
+use schema::{threads, posts};
 
-#[derive(Queryable, Serialize)]
+#[derive(Identifiable, Queryable, Serialize)]
 pub struct Thread {
     pub id: i32,
     pub title: String,
@@ -8,10 +9,11 @@ pub struct Thread {
     pub posted: DateTime<Utc>,
 }
 
-#[derive(Queryable, Serialize)]
+#[derive(Identifiable, Queryable, Serialize, Associations)]
+#[belongs_to(Thread)]
 pub struct Post {
     pub id: i32,
-    pub thread: i32,
+    pub thread_id: i32,
     pub body: String,
     pub posted: DateTime<Utc>,
 }

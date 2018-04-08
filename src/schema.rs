@@ -1,7 +1,7 @@
 table! {
     posts (id) {
         id -> Int4,
-        thread -> Int4,
+        thread_id -> Int4,
         body -> Text,
         posted -> Timestamptz,
     }
@@ -16,7 +16,7 @@ table! {
     }
 }
 
-joinable!(posts -> threads (thread));
+joinable!(posts -> threads (thread_id));
 
 allow_tables_to_appear_in_same_query!(
     posts,
