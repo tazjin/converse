@@ -19,8 +19,15 @@ fn connect_db() -> PgConnection {
 
 fn main() {
     use schema::threads::dsl::*;
-    use schema::posts::dsl::*;
+    use models::*;
 
     let conn = connect_db();
-    let threads = threads.
+    let result: Vec<Thread> = threads
+        .load::<Thread>(&conn)
+        .expect("Error loading threads");
+
+    for thread in result {
+        println!("Subject: {}\nPosted: {}\n", thread.title, thread.posted);
+        println!("{}", thread.body);
+    }
 }
