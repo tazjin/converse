@@ -1,0 +1,11 @@
+[package]
+name = "converse"
+version = "0.1.0"
+authors = ["Vincent Ambo <mail@tazj.in>"]
+
+[dependencies]
+actix = "0.5"
+actix-web = { git="https://github.com/actix/actix-web.git" }
+env_logger = "0.5"
+diesel = { version = "1.0", features = ["postgres", "chrono"]}
+chrono = "0.4"
