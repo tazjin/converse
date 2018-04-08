@@ -24,3 +24,10 @@ pub struct NewThread {
     pub title: String,
     pub body: String,
 }
+
+#[derive(Deserialize, Insertable)]
+#[table_name="posts"]
+pub struct NewPost {
+    pub thread_id: i32,
+    pub body: String,
+}

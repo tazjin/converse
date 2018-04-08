@@ -75,7 +75,28 @@ impl Handler<CreateThread> for DbExecutor {
         let conn = self.0.get()?;
 
         Ok(diesel::insert_into(threads::table)
-            .values(&msg.0)
-            .get_result(&conn)?)
+           .values(&msg.0)
+           .get_result(&conn)?)
+    }
+}
+
+/// Message used to create a new reply
+pub struct CreatePost(pub NewPost);
+
+impl Message for CreatePost {
+    type Result = Result<Post>;
+}
+
+impl Handler<CreatePost> for DbExecutor {
+    type Result = <CreatePost as Message>::Result;
+
+    fn handle(&mut self, msg: CreatePost, _: &mut Self::Context) -> Self::Result {
+        use schema::posts;
+
+        let conn = self.0.get()?;
+
+        Ok(diesel::insert_into(posts::table)
+           .values(&msg.0)
+           .get_result(&conn)?)
     }
 }
