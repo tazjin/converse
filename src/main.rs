@@ -10,6 +10,9 @@ extern crate tera;
 #[macro_use]
 extern crate serde_derive;
 
+#[macro_use]
+extern crate failure;
+
 extern crate chrono;
 extern crate actix;
 extern crate actix_web;
@@ -18,10 +21,11 @@ extern crate r2d2;
 extern crate futures;
 extern crate serde;
 
-pub mod schema;
-pub mod models;
 pub mod db;
+pub mod errors;
 pub mod handlers;
+pub mod models;
+pub mod schema;
 
 use actix::prelude::*;
 use actix_web::*;
