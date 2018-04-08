@@ -83,8 +83,23 @@ pub fn submit_thread(state: State<AppState>, input: Form<NewThread>) -> Converse
         .and_then(move |res| {
             let thread = res?;
             info!("Created new thread \"{}\" with ID {}", thread.title, thread.id);
-            Ok(HttpResponse::TemporaryRedirect()
+            Ok(HttpResponse::SeeOther()
                .header("Location", format!("/thread/{}", thread.id))
+               .finish())
+        })
+        .responder()
+}
+
+/// This handler receives a "Reply"-form and redirects the user to the
+/// new post after creation.
+pub fn reply_thread(state: State<AppState>, input: Form<NewPost>) -> ConverseResponse {
+    state.db.send(CreatePost(input.0))
+        .from_err()
+        .and_then(move |res| {
+            let post = res?;
+            info!("Posted reply {} to thread {}", post.id, post.thread_id);
+            Ok(HttpResponse::SeeOther()
+               .header("Location", format!("/thread/{}#post{}", post.thread_id, post.id))
                .finish())
         })
         .responder()
