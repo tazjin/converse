@@ -4,6 +4,8 @@ table! {
         thread_id -> Int4,
         body -> Text,
         posted -> Timestamptz,
+        author_name -> Varchar,
+        author_email -> Varchar,
     }
 }
 
@@ -13,6 +15,8 @@ table! {
         title -> Varchar,
         body -> Text,
         posted -> Timestamptz,
+        author_name -> Varchar,
+        author_email -> Varchar,
     }
 }
 

@@ -7,6 +7,8 @@ pub struct Thread {
     pub title: String,
     pub body: String,
     pub posted: DateTime<Utc>,
+    pub author_name: String,
+    pub author_email: String,
 }
 
 #[derive(Identifiable, Queryable, Serialize, Associations)]
@@ -16,6 +18,8 @@ pub struct Post {
     pub thread_id: i32,
     pub body: String,
     pub posted: DateTime<Utc>,
+    pub author_name: String,
+    pub author_email: String,
 }
 
 #[derive(Deserialize, Insertable)]
