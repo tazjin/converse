@@ -1,0 +1,13 @@
+CREATE TABLE threads (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  body TEXT NOT NULL,
+  posted TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  thread SERIAL REFERENCES threads (id),
+  body TEXT NOT NULL,
+  posted TIMESTAMPTZ NOT NULL
+);
