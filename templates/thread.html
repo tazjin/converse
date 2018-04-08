@@ -6,9 +6,9 @@
   <body>
     <h1>{{ thread.title }}</h1>
 
-    <p>{{ thread.body }}<br><i>Posted at {{ thread.posted }}</i></p>
+    <p>{{ thread.body }}<br><i>Posted at {{ thread.posted }} by {{ thread.author_name }}</i></p>
     {% for post in posts -%}
-    <li>{{ post.body }}<br><i>Posted at {{ post.posted }}</i></li>
+    <li>{{ post.body }}<br><i>Posted at {{ post.posted }} by {{ post.author_name }}</i></li>
     {%- endfor %}
 
     <hr>
