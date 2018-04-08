@@ -7,7 +7,7 @@
     <h1>Welcome to Converse</h1>
     <ul>
       {% for thread in threads -%}
-        <li>{{ thread.title }} (posted at {{ thread.posted }})</li>
+        <li><a href="/thread/{{ thread.id }}">{{ thread.title }}</a> (posted at {{ thread.posted }})</li>
       {%- endfor %}
     </ul>
   </body>

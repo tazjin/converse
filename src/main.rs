@@ -30,7 +30,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use std::env;
 use db::*;
 use futures::Future;
-use models::Thread;
+use models::*;
 
 /// Represents the state carried by the web server actors.
 struct AppState {
@@ -63,6 +63,31 @@ fn forum_index(req: HttpRequest<AppState>) -> FutureResponse<HttpResponse> {
         .responder()
 }
 
+fn render_thread(tpl: &tera::Tera, thread: Thread, posts: Vec<Post>) -> HttpResponse {
+    let mut ctx = tera::Context::new();
+    ctx.add("thread", &thread);
+    ctx.add("posts", &posts);
+
+    let body = tpl.render("thread.html", &ctx).expect("Oh no");
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(body)
+}
+
+fn forum_thread(req: HttpRequest<AppState>) -> FutureResponse<HttpResponse> {
+    let thread_id = req.match_info().query("id").unwrap();
+    req.state().db.send(GetThread(thread_id))
+        .from_err()
+        .and_then(move |res| match res {
+            Ok((thread, posts)) => Ok(render_thread(&req.state().tera, thread, posts)),
+            Err(err) => {
+                error!("Error loading thread {}: {}", thread_id, err);
+                Ok(HttpResponse::InternalServerError().into())
+            }
+        })
+        .responder()
+}
+
 fn main() {
     env_logger::init();
 
@@ -86,6 +111,7 @@ fn main() {
         App::with_state(AppState { db: db_addr.clone(), tera })
             .middleware(middleware::Logger::default())
             .route("/", http::Method::GET, &forum_index)
+            .route("/thread/{id}", http::Method::GET, &forum_thread)
     }).bind("127.0.0.1:4567").unwrap().start();
 
     let _ = sys.run();

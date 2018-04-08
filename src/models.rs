@@ -8,7 +8,7 @@ pub struct Thread {
     pub posted: DateTime<Utc>,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize)]
 pub struct Post {
     pub id: i32,
     pub thread: i32,

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Converse: {{ thread.title }}</title>
+  </head>
+  <body>
+    <h1>{{ thread.title }}</h1>
+
+    <p>{{ thread.body }}<br><i>Posted at {{ thread.posted }}</i></p>
+    {% for post in posts -%}
+      <li>{{ post.body }}<br><i>Posted at {{ post.posted }}</i></p>
+    {%- endfor %}
+  </body>
+</html>
