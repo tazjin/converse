@@ -7,5 +7,7 @@ authors = ["Vincent Ambo <mail@tazj.in>"]
 actix = "0.5"
 actix-web = { git="https://github.com/actix/actix-web.git" }
 env_logger = "0.5"
-diesel = { version = "1.2", features = ["postgres", "chrono"]}
+diesel = { version = "1.2", features = ["postgres", "chrono", "r2d2"]}
 chrono = "0.4"
+log = "0.4"
+r2d2 = "*"
