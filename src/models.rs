@@ -1,6 +1,6 @@
 use chrono::prelude::{DateTime, Utc};
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize)]
 pub struct Thread {
     pub id: i32,
     pub title: String,

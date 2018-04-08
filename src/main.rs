@@ -4,12 +4,19 @@ extern crate diesel;
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+extern crate tera;
+
+#[macro_use]
+extern crate serde_derive;
+
 extern crate chrono;
 extern crate actix;
 extern crate actix_web;
 extern crate env_logger;
 extern crate r2d2;
 extern crate futures;
+extern crate serde;
 
 pub mod schema;
 pub mod models;
@@ -27,28 +34,27 @@ use models::Thread;
 
 /// Represents the state carried by the web server actors.
 struct AppState {
+    /// Address of the database actor
     db: Addr<Syn, DbExecutor>,
+
+    /// Compiled templates
+    tera: tera::Tera,
 }
 
 /// Really inefficient renderer example!
-fn render_threads(threads: Vec<Thread>) -> String {
-    let mut res = String::new();
-
-    for thread in threads {
-        res.push_str(&format!("Subject: {}\n", thread.title));
-        res.push_str(&format!("Posted at: {}\n\n", thread.posted));
-        res.push_str(&format!("{}\n", thread.body));
-        res.push_str("-------------------------------");
-    }
-
-    res
+fn render_threads(tpl: &tera::Tera, threads: Vec<Thread>) -> String {
+    let mut ctx = tera::Context::new();
+    ctx.add("threads", &threads);
+    tpl.render("index.html", &ctx).expect("Oh no")
 }
 
 fn forum_index(req: HttpRequest<AppState>) -> FutureResponse<HttpResponse> {
     req.state().db.send(ListThreads)
         .from_err()
-        .and_then(|res| match res {
-            Ok(threads) => Ok(HttpResponse::from(render_threads(threads))),
+        .and_then(move |res| match res {
+            Ok(threads) => Ok(HttpResponse::Ok()
+                              .content_type("text/html")
+                              .body(render_threads(&req.state().tera, threads))),
             Err(err) => {
                 error!("Error loading threads: {}", err);
                 Ok(HttpResponse::InternalServerError().into())
@@ -74,7 +80,10 @@ fn main() {
 
     info!("Initialising HTTP server ...");
     server::new(move || {
-        App::with_state(AppState { db: db_addr.clone() })
+        let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
+        let tera = compile_templates!(template_path);
+
+        App::with_state(AppState { db: db_addr.clone(), tera })
             .middleware(middleware::Logger::default())
             .route("/", http::Method::GET, &forum_index)
     }).bind("127.0.0.1:4567").unwrap().start();

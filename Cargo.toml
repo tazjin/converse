@@ -8,8 +8,10 @@ actix = "0.5"
 actix-web = { git="https://github.com/actix/actix-web.git" }
 env_logger = "0.5"
 diesel = { version = "1.2", features = ["postgres", "chrono", "r2d2"]}
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 log = "0.4"
 r2d2 = "*"
 futures = "*"
 tera = "0.11"
+serde = "1.0"
+serde_derive = "1.0"

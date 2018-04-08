@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Converse Index page</title>
+  </head>
+  <body>
+    <h1>Welcome to Converse</h1>
+    <ul>
+      {% for thread in threads -%}
+        <li>{{ thread.title }} (posted at {{ thread.posted }})</li>
+      {%- endfor %}
+    </ul>
+  </body>
+</html>
