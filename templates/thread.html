@@ -8,7 +8,19 @@
 
     <p>{{ thread.body }}<br><i>Posted at {{ thread.posted }}</i></p>
     {% for post in posts -%}
-      <li>{{ post.body }}<br><i>Posted at {{ post.posted }}</i></p>
+    <li>{{ post.body }}<br><i>Posted at {{ post.posted }}</i></li>
     {%- endfor %}
+
+    <hr>
+    <form action="/thread/reply" method="post">
+      <input type="hidden" id="thread_id" name="thread_id" value="{{ thread.id }}">
+      <div>
+        <label for="body">Content:</label>
+        <textarea id="body" name="body"></textarea>
+      </div>
+      <div>
+        <input type="submit" value="Reply">
+      </div>
+    </form>
   </body>
 </html>
