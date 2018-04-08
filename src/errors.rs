@@ -9,6 +9,7 @@ use actix_web::http::StatusCode;
 
 // Modules with foreign errors:
 use actix;
+use actix_web;
 use diesel;
 use r2d2;
 use reqwest;
@@ -30,11 +31,14 @@ pub enum ConverseError {
     #[fail(display = "a template rendering error occured: {}", reason)]
     Template { reason: String },
 
+    #[fail(display = "error occured during request handling: {}", error)]
+    ActixWeb { error: actix_web::Error },
+
     // This variant is used as a catch-all for wrapping
     // actix-web-compatible response errors, such as the errors it
     // throws itself.
     #[fail(display = "Actix response error: {}", error)]
-    ActixWeb { error: Box<ResponseError> },
+    Actix { error: Box<ResponseError> },
 }
 
 // Establish conversion links to foreign errors:
@@ -61,7 +65,13 @@ impl From<tera::Error> for ConverseError {
 
 impl From<actix::MailboxError> for ConverseError {
     fn from(error: actix::MailboxError) -> ConverseError {
-        ConverseError::ActixWeb { error: Box::new(error) }
+        ConverseError::Actix { error: Box::new(error) }
+    }
+}
+
+impl From<actix_web::Error> for ConverseError {
+    fn from(error: actix_web::Error) -> ConverseError {
+        ConverseError::ActixWeb { error }
     }
 }
 

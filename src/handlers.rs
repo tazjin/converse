@@ -5,14 +5,15 @@
 //! the tera templates stored in the `/templates` directory in the
 //! project root.
 
-use tera;
-use actix_web::*;
-use models::*;
-use db::*;
 use actix::prelude::{Addr, Syn};
-use futures::Future;
+use actix_web::*;
+use actix_web::middleware::RequestSession;
+use db::*;
 use errors::{Result, ConverseError};
+use futures::Future;
+use models::*;
 use oidc::*;
+use tera;
 
 type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;
 
@@ -119,11 +120,18 @@ pub fn login(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
-pub fn callback(state: State<AppState>, data: Form<CodeResponse>) -> ConverseResponse {
+pub fn callback(state: State<AppState>,
+                data: Form<CodeResponse>,
+                mut req: HttpRequest<AppState>) -> ConverseResponse {
     state.oidc.send(RetrieveToken(data.0))
         .from_err()
-        .and_then(|author| {
-            Ok(HttpResponse::from(format!("{:?}", author)))
-        })
+        .and_then(move |result| {
+            let author = result?;
+            info!("Setting cookie for {} after callback", author.name);
+            req.session().set("author_name", author.name)?;
+            req.session().set("author_email", author.email)?;
+            Ok(HttpResponse::SeeOther()
+               .header("Location", "/")
+               .finish())})
         .responder()
 }

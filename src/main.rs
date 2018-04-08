@@ -35,6 +35,7 @@ pub mod schema;
 
 use actix::prelude::*;
 use actix_web::*;
+use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
 use actix_web::http::Method;
 use db::*;
 use diesel::pg::PgConnection;
@@ -80,6 +81,7 @@ fn main() {
 
     info!("Initialising HTTP server ...");
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
+    let key: &[u8] = &[0; 32]; // TODO: generate!
 
     server::new(move || {
         let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
@@ -91,13 +93,15 @@ fn main() {
         };
 
         App::with_state(state)
-            .middleware(middleware::Logger::default())
+            .middleware(Logger::default())
+            // TODO: Configure session backend with more secure settings.
+            .middleware(SessionStorage::new(CookieSessionBackend::new(key)))
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/submit", |r| r.method(Method::POST).with2(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with2(reply_thread))
             .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
-            .resource("/oidc/callback", |r| r.method(Method::POST).with2(callback))})
+            .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback))})
         .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
         .start();
 
