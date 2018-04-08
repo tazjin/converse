@@ -12,6 +12,7 @@ use db::*;
 use actix::prelude::{Addr, Syn};
 use futures::Future;
 use errors::{Result, ConverseError};
+use oidc::*;
 
 type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;
 
@@ -19,6 +20,9 @@ type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;
 pub struct AppState {
     /// Address of the database actor
     pub db: Addr<Syn, DbExecutor>,
+
+    /// Address of the OIDC actor
+    pub oidc: Addr<Syn, OidcExecutor>,
 
     /// Compiled templates
     pub tera: tera::Tera,
@@ -101,6 +105,25 @@ pub fn reply_thread(state: State<AppState>, input: Form<NewPost>) -> ConverseRes
             Ok(HttpResponse::SeeOther()
                .header("Location", format!("/thread/{}#post{}", post.thread_id, post.id))
                .finish())
+        })
+        .responder()
+}
+
+/// This handler initiates an OIDC login.
+pub fn login(state: State<AppState>) -> ConverseResponse {
+    state.oidc.send(GetLoginUrl)
+        .from_err()
+        .and_then(|url| Ok(HttpResponse::TemporaryRedirect()
+                           .header("Location", url)
+                           .finish()))
+        .responder()
+}
+
+pub fn callback(state: State<AppState>, data: Form<CodeResponse>) -> ConverseResponse {
+    state.oidc.send(RetrieveToken(data.0))
+        .from_err()
+        .and_then(|author| {
+            Ok(HttpResponse::from(format!("{:?}", author)))
         })
         .responder()
 }
