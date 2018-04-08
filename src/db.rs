@@ -1,10 +1,10 @@
 //! This module implements the database connection actor.
 
 use actix::prelude::*;
-use actix_web::Error;
 use diesel::prelude::*;
 use diesel::r2d2::{Pool, ConnectionManager};
 use models::*;
+use errors::Result;
 
 /// The DB actor itself. Several of these will be run in parallel by
 /// `SyncArbiter`.
@@ -19,7 +19,7 @@ impl Actor for DbExecutor {
 pub struct ListThreads;
 
 impl Message for ListThreads {
-    type Result = Result<Vec<Thread>, Error>;
+    type Result = Result<Vec<Thread>>;
 }
 
 impl Handler<ListThreads> for DbExecutor {
@@ -28,8 +28,8 @@ impl Handler<ListThreads> for DbExecutor {
     fn handle(&mut self, _: ListThreads, _: &mut Self::Context) -> Self::Result {
         use schema::threads::dsl::*;
 
-        let conn = self.0.get().unwrap();
-        let results = threads.load::<Thread>(&conn).expect("Error loading threads");
+        let conn = self.0.get()?;
+        let results = threads.load::<Thread>(&conn)?;
         Ok(results)
     }
 }
@@ -39,7 +39,7 @@ impl Handler<ListThreads> for DbExecutor {
 pub struct GetThread(pub i32);
 
 impl Message for GetThread {
-    type Result = Result<(Thread, Vec<Post>), Error>;
+    type Result = Result<(Thread, Vec<Post>)>;
 }
 
 impl Handler<GetThread> for DbExecutor {
@@ -48,13 +48,11 @@ impl Handler<GetThread> for DbExecutor {
     fn handle(&mut self, msg: GetThread, _: &mut Self::Context) -> Self::Result {
         use schema::threads::dsl::*;
 
-        let conn = self.0.get().unwrap();
+        let conn = self.0.get()?;
         let thread_result: Thread = threads
-            .find(msg.0).first(&conn)
-            .expect("Error loading thread");
+            .find(msg.0).first(&conn)?;
 
-        let post_list = Post::belonging_to(&thread_result)
-            .load::<Post>(&conn).expect("Error loading posts for thread");
+        let post_list = Post::belonging_to(&thread_result).load::<Post>(&conn)?;
 
         Ok((thread_result, post_list))
     }
