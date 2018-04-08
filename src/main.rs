@@ -106,6 +106,8 @@ fn main() {
     let db_addr = SyncArbiter::start(2, move || DbExecutor(pool.clone()));
 
     info!("Initialising HTTP server ...");
+    let bind_host = env::var("CONVERSE_BIND_HOST").unwrap_or("127.0.0.1:4567".into());
+
     server::new(move || {
         let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
         let tera = compile_templates!(template_path);
@@ -113,8 +115,9 @@ fn main() {
         App::with_state(AppState { db: db_addr.clone(), tera })
             .middleware(middleware::Logger::default())
             .resource("/", |r| r.method(Method::GET).with(forum_index))
-            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
-    }).bind("127.0.0.1:4567").unwrap().start();
+            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))})
+        .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
+        .start();
 
     let _ = sys.run();
 }
