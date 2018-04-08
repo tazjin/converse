@@ -24,6 +24,7 @@ pub mod db;
 
 use actix::prelude::*;
 use actix_web::*;
+use actix_web::http::Method;
 
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -48,13 +49,13 @@ fn render_threads(tpl: &tera::Tera, threads: Vec<Thread>) -> String {
     tpl.render("index.html", &ctx).expect("Oh no")
 }
 
-fn forum_index(req: HttpRequest<AppState>) -> FutureResponse<HttpResponse> {
-    req.state().db.send(ListThreads)
+fn forum_index(state: State<AppState>) -> FutureResponse<HttpResponse> {
+    state.db.send(ListThreads)
         .from_err()
         .and_then(move |res| match res {
             Ok(threads) => Ok(HttpResponse::Ok()
                               .content_type("text/html")
-                              .body(render_threads(&req.state().tera, threads))),
+                              .body(render_threads(&state.tera, threads))),
             Err(err) => {
                 error!("Error loading threads: {}", err);
                 Ok(HttpResponse::InternalServerError().into())
@@ -74,14 +75,15 @@ fn render_thread(tpl: &tera::Tera, thread: Thread, posts: Vec<Post>) -> HttpResp
         .body(body)
 }
 
-fn forum_thread(req: HttpRequest<AppState>) -> FutureResponse<HttpResponse> {
-    let thread_id = req.match_info().query("id").unwrap();
-    req.state().db.send(GetThread(thread_id))
+fn forum_thread(state: State<AppState>, thread_id: Path<i32>)
+                -> FutureResponse<HttpResponse> {
+    let id = thread_id.into_inner();
+    state.db.send(GetThread(id))
         .from_err()
         .and_then(move |res| match res {
-            Ok((thread, posts)) => Ok(render_thread(&req.state().tera, thread, posts)),
+            Ok((thread, posts)) => Ok(render_thread(&state.tera, thread, posts)),
             Err(err) => {
-                error!("Error loading thread {}: {}", thread_id, err);
+                error!("Error loading thread {}: {}", id, err);
                 Ok(HttpResponse::InternalServerError().into())
             }
         })
@@ -110,8 +112,8 @@ fn main() {
 
         App::with_state(AppState { db: db_addr.clone(), tera })
             .middleware(middleware::Logger::default())
-            .route("/", http::Method::GET, &forum_index)
-            .route("/thread/{id}", http::Method::GET, &forum_thread)
+            .resource("/", |r| r.method(Method::GET).with(forum_index))
+            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
     }).bind("127.0.0.1:4567").unwrap().start();
 
     let _ = sys.run();
