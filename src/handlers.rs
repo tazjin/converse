@@ -74,3 +74,18 @@ pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseRes
         })
         .responder()
 }
+
+/// This handler receives a "New thread"-form and redirects the user
+/// to the new thread after creation.
+pub fn submit_thread(state: State<AppState>, input: Form<NewThread>) -> ConverseResponse {
+    state.db.send(CreateThread(input.0))
+        .from_err()
+        .and_then(move |res| {
+            let thread = res?;
+            info!("Created new thread \"{}\" with ID {}", thread.title, thread.id);
+            Ok(HttpResponse::TemporaryRedirect()
+               .header("Location", format!("/thread/{}", thread.id))
+               .finish())
+        })
+        .responder()
+}

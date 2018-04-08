@@ -18,7 +18,7 @@ pub struct Post {
     pub posted: DateTime<Utc>,
 }
 
-#[derive(Insertable)]
+#[derive(Deserialize, Insertable)]
 #[table_name="threads"]
 pub struct NewThread {
     pub title: String,

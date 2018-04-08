@@ -61,6 +61,7 @@ fn main() {
         App::with_state(AppState { db: db_addr.clone(), tera })
             .middleware(middleware::Logger::default())
             .resource("/", |r| r.method(Method::GET).with(forum_index))
+            .resource("/thread", |r| r.method(Method::POST).with2(submit_thread))
             .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))})
         .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
         .start();
