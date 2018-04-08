@@ -11,6 +11,7 @@ use actix_web::http::StatusCode;
 use actix;
 use diesel;
 use r2d2;
+use reqwest;
 use tera;
 
 pub type Result<T> = result::Result<T, ConverseError>;
@@ -61,6 +62,14 @@ impl From<tera::Error> for ConverseError {
 impl From<actix::MailboxError> for ConverseError {
     fn from(error: actix::MailboxError) -> ConverseError {
         ConverseError::ActixWeb { error: Box::new(error) }
+    }
+}
+
+impl From<reqwest::Error> for ConverseError {
+    fn from(error: reqwest::Error) -> ConverseError {
+        ConverseError::InternalError {
+            reason: format!("Failed to make HTTP request: {}", error),
+        }
     }
 }
 

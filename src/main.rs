@@ -13,14 +13,20 @@ extern crate serde_derive;
 #[macro_use]
 extern crate failure;
 
-extern crate chrono;
 extern crate actix;
 extern crate actix_web;
+extern crate chrono;
 extern crate env_logger;
-extern crate r2d2;
 extern crate futures;
+extern crate r2d2;
+extern crate reqwest;
 extern crate serde;
+extern crate url;
+extern crate url_serde;
+extern crate serde_json;
+extern crate hyper;
 
+pub mod oidc;
 pub mod db;
 pub mod errors;
 pub mod handlers;
