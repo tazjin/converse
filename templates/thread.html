@@ -47,7 +47,7 @@
                 <div class="col-10">
                   {{ thread.body }}
                 </div>
-                <small class="text muted"> {{ thread.posted }} </small>
+                <small class="text-muted"> {{ thread.posted }} </small>
               </div>
             </div>
 
@@ -55,13 +55,21 @@
             <div class="list-group-item flex-column align-items-start">
               <div class="row">
                 <div class="col-2 border-right">
-                  <img src="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50" />
-                  {{ post.author_name }}
+                  <div class="row">
+                    <div class="col-12">
+                      <img src="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50" />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-12">
+                      <strong>{{ post.author_name }}</strong>
+                    </div>
+                  </div>
                 </div>
                 <div class="col-10">
                   {{ post.body }}
                 </div>
-                <small class="text muted"> {{ post.posted }} </small>
+                <small class="text-muted"> {{ post.posted }} </small>
               </div>
             </div>
             {%- endfor %}
