@@ -81,10 +81,28 @@ pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseRes
         .responder()
 }
 
+#[derive(Deserialize)]
+pub struct NewThreadForm {
+    pub title: String,
+    pub body: String,
+}
+
 /// This handler receives a "New thread"-form and redirects the user
 /// to the new thread after creation.
-pub fn submit_thread(state: State<AppState>, input: Form<NewThread>) -> ConverseResponse {
-    state.db.send(CreateThread(input.0))
+pub fn submit_thread(state: State<AppState>,
+                     input: Form<NewThreadForm>,
+                     mut req: HttpRequest<AppState>) -> ConverseResponse {
+    // Author is "unwrapped" because the RequireLogin middleware
+    // guarantees it to be present.
+    let author: Author = req.session().get(AUTHOR).unwrap().unwrap();
+    let new_thread = NewThread {
+        title: input.0.title,
+        body: input.0.body,
+        author_name: author.name,
+        author_email: author.email,
+    };
+
+    state.db.send(CreateThread(new_thread))
         .from_err()
         .and_then(move |res| {
             let thread = res?;
@@ -96,10 +114,28 @@ pub fn submit_thread(state: State<AppState>, input: Form<NewThread>) -> Converse
         .responder()
 }
 
+#[derive(Deserialize)]
+pub struct NewPostForm {
+    pub thread_id: i32,
+    pub body: String,
+}
+
 /// This handler receives a "Reply"-form and redirects the user to the
 /// new post after creation.
-pub fn reply_thread(state: State<AppState>, input: Form<NewPost>) -> ConverseResponse {
-    state.db.send(CreatePost(input.0))
+pub fn reply_thread(state: State<AppState>,
+                    input: Form<NewPostForm>,
+                    mut req: HttpRequest<AppState>) -> ConverseResponse {
+    // Author is "unwrapped" because the RequireLogin middleware
+    // guarantees it to be present.
+    let author: Author = req.session().get(AUTHOR).unwrap().unwrap();
+    let new_post = NewPost {
+        thread_id: input.thread_id,
+        body: input.0.body,
+        author_name: author.name,
+        author_email: author.email,
+    };
+
+    state.db.send(CreatePost(new_post))
         .from_err()
         .and_then(move |res| {
             let post = res?;

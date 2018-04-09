@@ -27,6 +27,8 @@ pub struct Post {
 pub struct NewThread {
     pub title: String,
     pub body: String,
+    pub author_name: String,
+    pub author_email: String,
 }
 
 #[derive(Deserialize, Insertable)]
@@ -34,4 +36,6 @@ pub struct NewThread {
 pub struct NewPost {
     pub thread_id: i32,
     pub body: String,
+    pub author_name: String,
+    pub author_email: String,
 }
