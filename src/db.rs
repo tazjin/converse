@@ -30,7 +30,9 @@ impl Handler<ListThreads> for DbExecutor {
         use schema::threads::dsl::*;
 
         let conn = self.0.get()?;
-        let results = threads.load::<Thread>(&conn)?;
+        let results = threads
+            .order(posted.desc())
+            .load::<Thread>(&conn)?;
         Ok(results)
     }
 }
