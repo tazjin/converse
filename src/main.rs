@@ -18,14 +18,14 @@ extern crate actix_web;
 extern crate chrono;
 extern crate env_logger;
 extern crate futures;
+extern crate hyper;
 extern crate r2d2;
 extern crate rand;
 extern crate reqwest;
 extern crate serde;
+extern crate serde_json;
 extern crate url;
 extern crate url_serde;
-extern crate serde_json;
-extern crate hyper;
 
 pub mod oidc;
 pub mod db;
@@ -36,7 +36,7 @@ pub mod schema;
 
 use actix::prelude::*;
 use actix_web::*;
-use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
+use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackendBuilder};
 use actix_web::http::Method;
 use db::*;
 use diesel::pg::PgConnection;
@@ -71,6 +71,7 @@ fn main() {
     let oidc_url = config("OIDC_DISCOVERY_URL");
     let oidc_config = oidc::load_oidc(&oidc_url)
         .expect("Failed to retrieve OIDC discovery document");
+    let base_url = config("BASE_URL");
 
     let oidc = oidc::OidcExecutor {
         oidc_config,
@@ -101,10 +102,16 @@ fn main() {
             tera,
         };
 
+        let sessions = SessionStorage::new(
+            CookieSessionBackendBuilder::new(&key)
+                .secure(base_url.starts_with("https"))
+                .finish());
+
         App::with_state(state)
             .middleware(Logger::default())
             // TODO: Configure session backend with more secure settings.
-            .middleware(SessionStorage::new(CookieSessionBackend::new(key)))
+            .middleware(sessions)
+            .middleware(RequireLogin)
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/submit", |r| r.method(Method::POST).with2(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with2(reply_thread))
