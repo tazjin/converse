@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Converse Index</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-light bg-light justify-content-between mb-3">
+        <a class="navbar-brand" href="/">
+          <h2>Converse: New Thread</h2>
+        </a>
+        <form class="form-inline">
+          <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
+        </form>
+      </nav>
+    </header>
+    <div class="container border rounded">
+      <div class="col-8">
+        <p class="mt-3">Make <i>your own thread</i> on these here forums!</p>
+        <p>Remember that you can use <strong>Markdown</strong> when
+          writing your posts.</p>
+        <form action="/thread/submit" method="post">
+          <div class="row">
+            <div class="col-8 input-group m-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="title-text">Title:</span>
+              </div>
+              <input type="text" class="form-control" id="title" name="title" aria-describedby="title-text">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8 input-group m-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="body-text">Body:</span>
+              </div>
+              <textarea class="form-control" id="body" name="body" aria-label="thread body"></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-2 m-3">
+              <button class="btn btn-outline-primary" type="submit">Post!</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

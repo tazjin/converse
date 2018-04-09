@@ -109,10 +109,10 @@ fn main() {
 
         App::with_state(state)
             .middleware(Logger::default())
-            // TODO: Configure session backend with more secure settings.
             .middleware(sessions)
             .middleware(RequireLogin)
             .resource("/", |r| r.method(Method::GET).with(forum_index))
+            .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with3(reply_thread))
             .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))

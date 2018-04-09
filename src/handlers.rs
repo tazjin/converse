@@ -81,6 +81,15 @@ pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseRes
         .responder()
 }
 
+/// This handler presents the user with the "New Thread" form.
+pub fn new_thread(state: State<AppState>) -> Result<HttpResponse> {
+    let ctx = tera::Context::new();
+    let body = state.tera.render("new-thread.html", &ctx)?;
+    Ok(HttpResponse::Ok()
+       .content_type("text/html")
+       .body(body))
+}
+
 #[derive(Deserialize)]
 pub struct NewThreadForm {
     pub title: String,
