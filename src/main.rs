@@ -19,6 +19,7 @@ extern crate chrono;
 extern crate env_logger;
 extern crate futures;
 extern crate r2d2;
+extern crate rand;
 extern crate reqwest;
 extern crate serde;
 extern crate url;
@@ -41,6 +42,7 @@ use db::*;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use std::env;
+use rand::{OsRng, Rng};
 use handlers::*;
 
 fn config(name: &str) -> String {
@@ -81,7 +83,14 @@ fn main() {
 
     info!("Initialising HTTP server ...");
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
-    let key: &[u8] = &[0; 32]; // TODO: generate!
+    let key = {
+        let mut key_bytes = [0; 32];
+        let mut rng = OsRng::new()
+            .expect("Failed to retrieve RNG for key generation");
+        rng.fill_bytes(&mut key_bytes);
+
+        key_bytes
+    };
 
     server::new(move || {
         let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
