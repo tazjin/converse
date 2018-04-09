@@ -6,8 +6,9 @@
 //! project root.
 
 use actix::prelude::{Addr, Syn};
+use actix_web;
 use actix_web::*;
-use actix_web::middleware::RequestSession;
+use actix_web::middleware::{Started, Middleware, RequestSession};
 use db::*;
 use errors::{Result, ConverseError};
 use futures::Future;
@@ -120,6 +121,8 @@ pub fn login(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
+const AUTHOR: &'static str = "author";
+
 pub fn callback(state: State<AppState>,
                 data: Form<CodeResponse>,
                 mut req: HttpRequest<AppState>) -> ConverseResponse {
@@ -128,10 +131,30 @@ pub fn callback(state: State<AppState>,
         .and_then(move |result| {
             let author = result?;
             info!("Setting cookie for {} after callback", author.name);
-            req.session().set("author_name", author.name)?;
-            req.session().set("author_email", author.email)?;
+            req.session().set(AUTHOR, author)?;
             Ok(HttpResponse::SeeOther()
                .header("Location", "/")
                .finish())})
         .responder()
+}
+
+
+/// Middleware used to enforce logins unceremonially.
+pub struct RequireLogin;
+
+impl <S> Middleware<S> for RequireLogin {
+    fn start(&self, req: &mut HttpRequest<S>) -> actix_web::Result<Started> {
+        let has_author = req.session().get::<Author>(AUTHOR)?.is_some();
+        let is_oidc_req = req.path().starts_with("/oidc");
+
+        if !is_oidc_req && !has_author {
+            Ok(Started::Response(
+                HttpResponse::SeeOther()
+                    .header("Location", "/oidc/login")
+                    .finish()
+            ))
+        } else {
+            Ok(Started::Done)
+        }
+    }
 }

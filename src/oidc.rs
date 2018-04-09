@@ -42,7 +42,7 @@ pub struct CodeResponse {
 
 /// This struct represents the data extracted from the ID token and
 /// stored in the user's session.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Author {
     pub name: String,
     pub email: String,
