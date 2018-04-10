@@ -36,7 +36,7 @@ pub mod schema;
 
 use actix::prelude::*;
 use actix_web::*;
-use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackendBuilder};
+use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
 use actix_web::http::Method;
 use db::*;
 use diesel::pg::PgConnection;
@@ -103,9 +103,8 @@ fn main() {
         };
 
         let sessions = SessionStorage::new(
-            CookieSessionBackendBuilder::new(&key)
-                .secure(base_url.starts_with("https"))
-                .finish());
+            CookieSessionBackend::signed(&key)
+                .secure(base_url.starts_with("https")));
 
         App::with_state(state)
             .middleware(Logger::default())
