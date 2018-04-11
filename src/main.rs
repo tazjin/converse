@@ -27,11 +27,12 @@ extern crate serde_json;
 extern crate url;
 extern crate url_serde;
 
-pub mod oidc;
 pub mod db;
 pub mod errors;
 pub mod handlers;
 pub mod models;
+pub mod oidc;
+pub mod render;
 pub mod schema;
 
 use actix::prelude::*;
