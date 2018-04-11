@@ -20,6 +20,16 @@ impl Actor for Renderer {
     type Context = actix::Context<Self>;
 }
 
+/// Represents a data formatted for human consumption
+#[derive(Debug, Serialize)]
+struct FormattedDate(String);
+
+impl From<DateTime<Utc>> for FormattedDate {
+    fn from(date: DateTime<Utc>) -> Self {
+        FormattedDate(format!("{}", date.format("%a %d %B %Y, %R")))
+    }
+}
+
 /// Message used to render the index page.
 pub struct IndexPage {
     pub threads: Vec<Thread>,
@@ -33,7 +43,7 @@ impl Message for IndexPage {
 struct IndexThread {
     id: i32,
     title: String,
-    posted: DateTime<Utc>,
+    posted: FormattedDate,
     author_name: String,
 }
 
@@ -46,7 +56,7 @@ impl Handler<IndexPage> for Renderer {
             .map(|thread| IndexThread {
                 id: thread.id,
                 title: escape_html(&thread.title),
-                posted: thread.posted,
+                posted: thread.posted.into(),
                 author_name: thread.author_name,
             })
             .collect();
@@ -72,7 +82,7 @@ impl Message for ThreadPage {
 struct RenderablePost {
     id: i32,
     body: String,
-    posted: DateTime<Utc>,
+    posted: FormattedDate,
     author_name: String,
     author_gravatar: String,
 }
@@ -96,7 +106,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
         // Always pin the ID of the first post.
         id: 0,
         body: markdown_to_html(&page.thread.body, comrak),
-        posted: page.thread.posted,
+        posted: page.thread.posted.into(),
         author_name: page.thread.author_name,
         author_gravatar: md5_hex(page.thread.author_email.as_bytes()),
     }];
@@ -105,7 +115,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
         posts.push(RenderablePost {
             id: post.id,
             body: markdown_to_html(&post.body, comrak),
-            posted: post.posted,
+            posted: post.posted.into(),
             author_name: post.author_name,
             author_gravatar: md5_hex(post.author_email.as_bytes()),
         });
