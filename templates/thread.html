@@ -32,7 +32,10 @@
             </div>
 
             {% for post in posts -%}
-            <div class="list-group-item flex-column align-items-start">
+            <div id="post-{{ post.id}}" class="list-group-item flex-column align-items-start">
+              <a href="/thread/{{ id }}#post-{{ post.id }}">
+                <small class="text-muted float-right">{{ post.posted }}</small>
+              </a>
               <div class="row">
                 <div class="col-2 border-right">
                   <div class="row">
@@ -49,7 +52,6 @@
                 <div class="col-10">
                   {{ post.body }}
                 </div>
-                <small class="text-muted">{{ post.posted }}</small>
               </div>
             </div>
             {%- endfor %}

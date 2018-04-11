@@ -131,7 +131,7 @@ pub fn reply_thread(state: State<AppState>,
             let post = res?;
             info!("Posted reply {} to thread {}", post.id, post.thread_id);
             Ok(HttpResponse::SeeOther()
-               .header("Location", format!("/thread/{}#post{}", post.thread_id, post.id))
+               .header("Location", format!("/thread/{}#post-{}", post.thread_id, post.id))
                .finish())
         })
         .responder()
