@@ -4,11 +4,17 @@
 
 use actix::prelude::*;
 use actix_web::HttpResponse;
-use tera::{Context, Tera};
-use models::*;
 use errors::*;
+use md5;
+use models::*;
+use tera::{escape_html, Context, Tera};
+use chrono::prelude::{DateTime, Utc};
+use comrak::{ComrakOptions, markdown_to_html};
 
-pub struct Renderer(pub Tera);
+pub struct Renderer {
+    pub tera: Tera,
+    pub comrak: ComrakOptions,
+}
 
 impl Actor for Renderer {
     type Context = actix::Context<Self>;
@@ -29,7 +35,7 @@ impl Handler<IndexPage> for Renderer {
     fn handle(&mut self, msg: IndexPage, _: &mut Self::Context) -> Self::Result {
         let mut ctx = Context::new();
         ctx.add("threads", &msg.threads);
-        Ok(self.0.render("index.html", &ctx)?)
+        Ok(self.tera.render("index.html", &ctx)?)
     }
 }
 
@@ -43,14 +49,67 @@ impl Message for ThreadPage {
     type Result = Result<String>;
 }
 
+// "Renderable" structures with data transformations applied.
+#[derive(Debug, Serialize)]
+struct RenderablePost {
+    id: i32,
+    body: String,
+    posted: DateTime<Utc>,
+    author_name: String,
+    author_gravatar: String,
+}
+
+/// This structure represents the transformed thread data with
+/// Markdown rendering and other changes applied.
+#[derive(Debug, Serialize)]
+struct RenderableThreadPage {
+    id: i32,
+    title: String,
+    posts: Vec<RenderablePost>,
+}
+
+/// Helper function for computing Gravatar links.
+fn md5_hex(input: &[u8]) -> String {
+    format!("{:x}", md5::compute(input))
+}
+
+fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadPage {
+    let mut posts = vec![RenderablePost {
+        // Always pin the ID of the first post.
+        id: 0,
+        body: markdown_to_html(&page.thread.body, comrak),
+        posted: page.thread.posted,
+        author_name: page.thread.author_name,
+        author_gravatar: md5_hex(page.thread.author_email.as_bytes()),
+    }];
+
+    for post in page.posts {
+        posts.push(RenderablePost {
+            id: post.id,
+            body: markdown_to_html(&post.body, comrak),
+            posted: post.posted,
+            author_name: post.author_name,
+            author_gravatar: md5_hex(post.author_email.as_bytes()),
+        });
+    }
+
+    RenderableThreadPage {
+        posts,
+        id: page.thread.id,
+        title: escape_html(&page.thread.title),
+    }
+}
+
 impl Handler<ThreadPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: ThreadPage, _: &mut Self::Context) -> Self::Result {
+        let renderable = prepare_thread(&self.comrak, msg);
         let mut ctx = Context::new();
-        ctx.add("thread", &msg.thread);
-        ctx.add("posts", &msg.posts);
-        Ok(self.0.render("thread.html", &ctx)?)
+        ctx.add("title", &renderable.title);
+        ctx.add("posts", &renderable.posts);
+        ctx.add("id", &renderable.id);
+        Ok(self.tera.render("thread.html", &ctx)?)
     }
 }
 
@@ -65,6 +124,6 @@ impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, _: NewThreadPage, _: &mut Self::Context) -> Self::Result {
-        Ok(self.0.render("new-thread.html", &Context::new())?)
+        Ok(self.tera.render("new-thread.html", &Context::new())?)
     }
 }

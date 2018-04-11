@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Converse: {{ thread.title }}</title>
+    <title>Converse: {{ title }}</title>
   </head>
   <body>
     <header>
@@ -26,28 +26,8 @@
             <div class="list-group-item flex-column">
               <div class="row">
                 <div class="col-12">
-                  <h3>{{ thread.title }}</h3>
+                  <h3>{{ title }}</h3>
                 </div>
-              </div>
-            </div>
-            <div class="list-group-item flex-column align-items-start">
-              <div class="row">
-                <div class="col-2 border-right">
-                  <div class="row">
-                    <div class="col-12">
-                      <img src="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50" />
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-12">
-                      <strong>{{ thread.author_name }}</strong>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-10">
-                  {{ thread.body }}
-                </div>
-                <small class="text-muted"> {{ thread.posted }} </small>
               </div>
             </div>
 
@@ -57,7 +37,7 @@
                 <div class="col-2 border-right">
                   <div class="row">
                     <div class="col-12">
-                      <img src="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50" />
+                      <img src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid" />
                     </div>
                   </div>
                   <div class="row">
@@ -69,15 +49,16 @@
                 <div class="col-10">
                   {{ post.body }}
                 </div>
-                <small class="text-muted"> {{ post.posted }} </small>
+                <small class="text-muted">{{ post.posted }}</small>
               </div>
             </div>
             {%- endfor %}
+
             <div class="list-group-item flex-column align-items-start">
               <div class="row">
                 <div class="col-12">
                   <form action="/thread/reply" method="post">
-                    <input type="hidden" id="thread_id" name="thread_id" value="{{ thread.id }}">
+                    <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
                     <label for="body">You can use <strong>Markdown</strong>!</label>
                     <div class="input-group">
                       <textarea class="form-control" id="body" name="body" aria-label="thread response"></textarea>

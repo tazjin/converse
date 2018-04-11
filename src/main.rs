@@ -87,8 +87,18 @@ fn main() {
 
     info!("Compiling templates ...");
     let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
-    let tera = compile_templates!(template_path);
-    let renderer = render::Renderer(tera);
+    let mut tera = compile_templates!(template_path);
+    tera.autoescape_on(vec![]);
+    let comrak = comrak::ComrakOptions{
+        github_pre_lang: true,
+        ext_strikethrough: true,
+        ext_table: true,
+        ext_autolink: true,
+        ext_tasklist: true,
+        ext_footnotes: true,
+        ..Default::default()
+    };
+    let renderer = render::Renderer{ tera, comrak };
     let renderer_addr: Addr<Syn, render::Renderer> = renderer.start();
 
     info!("Initialising HTTP server ...");
