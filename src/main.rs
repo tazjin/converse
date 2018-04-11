@@ -83,6 +83,12 @@ fn main() {
 
     let oidc_addr: Addr<Syn, oidc::OidcExecutor> = oidc.start();
 
+    info!("Compiling templates ...");
+    let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
+    let tera = compile_templates!(template_path);
+    let renderer = render::Renderer(tera);
+    let renderer_addr: Addr<Syn, render::Renderer> = renderer.start();
+
     info!("Initialising HTTP server ...");
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
     let key = {
@@ -95,12 +101,10 @@ fn main() {
     };
 
     server::new(move || {
-        let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
-        let tera = compile_templates!(template_path);
         let state = AppState {
             db: db_addr.clone(),
             oidc: oidc_addr.clone(),
-            tera,
+            renderer: renderer_addr.clone(),
         };
 
         let sessions = SessionStorage::new(
