@@ -34,9 +34,12 @@ pub struct AppState {
 
 pub fn forum_index(state: State<AppState>) -> ConverseResponse {
     state.db.send(ListThreads)
-        .and_then(move |res| state.renderer.send(IndexPage { threads: res.unwrap() }))
-        .from_err()
-        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
+        .flatten()
+        .and_then(move |res| state.renderer.send(IndexPage {
+            threads: res
+        }).from_err())
+        .flatten()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
         .responder()
 }
 
@@ -44,22 +47,20 @@ pub fn forum_index(state: State<AppState>) -> ConverseResponse {
 pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseResponse {
     let id = thread_id.into_inner();
     state.db.send(GetThread(id))
-        .and_then(move |res| {
-            let u = res.unwrap();
-            state.renderer.send(ThreadPage {
-                thread: u.0,
-                posts: u.1,
-            })
-        })
-        .from_err()
-        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
+        .flatten()
+        .and_then(move |res| state.renderer.send(ThreadPage {
+            thread: res.0,
+            posts: res.1,
+        }).from_err())
+        .flatten()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
         .responder()
 }
 
 /// This handler presents the user with the "New Thread" form.
 pub fn new_thread(state: State<AppState>) -> ConverseResponse {
-    state.renderer.send(NewThreadPage).from_err()
-        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
+    state.renderer.send(NewThreadPage).flatten()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
         .responder()
 }
 
