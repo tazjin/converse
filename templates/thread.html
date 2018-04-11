@@ -13,9 +13,7 @@
         <a class="navbar-brand" href="/">
           <h2>Converse</h2>
         </a>
-        <form class="form-inline">
-          <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
-        </form>
+        <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
       </nav>
     </header>
 
@@ -59,7 +57,7 @@
             <div class="list-group-item flex-column align-items-start">
               <div class="row">
                 <div class="col-12">
-                  <form action="/thread/reply" method="post">
+                  <form id="reply-form" action="/thread/reply" method="post">
                     <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
                     <label for="body">You can use <strong>Markdown</strong>!</label>
                     <div class="input-group">

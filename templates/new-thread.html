@@ -20,6 +20,9 @@
     </header>
     <div class="container border rounded">
       <div class="col-8">
+        {% for alert in alerts %}
+        <div class="alert alert-warning m-3"><strong>{{ alert }}</strong></div>
+        {% endfor %}
         <p class="mt-3">Make <i>your own thread</i> on these here forums!</p>
         <p>Remember that you can use <strong>Markdown</strong> when
           writing your posts.</p>
@@ -29,7 +32,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text" id="title-text">Title:</span>
               </div>
-              <input type="text" class="form-control" id="title" name="title" aria-describedby="title-text">
+              <input type="text" class="form-control" id="title" name="title" aria-describedby="title-text" {% if title %}value="{{ title }}"{% endif %}>
             </div>
           </div>
           <div class="row">
@@ -37,7 +40,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text" id="body-text">Body:</span>
               </div>
-              <textarea class="form-control" id="body" name="body" aria-label="thread body"></textarea>
+              <textarea class="form-control" id="body" name="body" aria-label="thread body">{%if body %}{{ body }}{% endif %}</textarea>
             </div>
           </div>
           <div class="row">

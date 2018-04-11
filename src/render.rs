@@ -141,7 +141,15 @@ impl Handler<ThreadPage> for Renderer {
 }
 
 /// Message used to render new thread page.
-pub struct NewThreadPage;
+///
+/// It can optionally contain a vector of warnings to display to the
+/// user in alert boxes, such as input validation errors.
+#[derive(Default)]
+pub struct NewThreadPage {
+    pub alerts: Vec<&'static str>,
+    pub title: Option<String>,
+    pub body: Option<String>,
+}
 
 impl Message for NewThreadPage {
     type Result = Result<String>;
@@ -150,7 +158,11 @@ impl Message for NewThreadPage {
 impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
 
-    fn handle(&mut self, _: NewThreadPage, _: &mut Self::Context) -> Self::Result {
-        Ok(self.tera.render("new-thread.html", &Context::new())?)
+    fn handle(&mut self, msg: NewThreadPage, _: &mut Self::Context) -> Self::Result {
+        let mut ctx = Context::new();
+        ctx.add("alerts", &msg.alerts);
+        ctx.add("title", &msg.title.map(|s| escape_html(&s)));
+        ctx.add("body", &msg.body.map(|s| escape_html(&s)));
+        Ok(self.tera.render("new-thread.html", &ctx)?)
     }
 }

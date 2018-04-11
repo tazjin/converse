@@ -59,7 +59,7 @@ pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseRes
 
 /// This handler presents the user with the "New Thread" form.
 pub fn new_thread(state: State<AppState>) -> ConverseResponse {
-    state.renderer.send(NewThreadPage).flatten()
+    state.renderer.send(NewThreadPage::default()).flatten()
         .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
         .responder()
 }
@@ -70,11 +70,26 @@ pub struct NewThreadForm {
     pub body: String,
 }
 
+const NEW_THREAD_LENGTH_ERR: &'static str = "Title and body can not be empty!";
+
 /// This handler receives a "New thread"-form and redirects the user
 /// to the new thread after creation.
 pub fn submit_thread(state: State<AppState>,
                      input: Form<NewThreadForm>,
                      mut req: HttpRequest<AppState>) -> ConverseResponse {
+    // Perform simple validation and abort here if it fails:
+    if input.0.title.is_empty() || input.0.body.is_empty() {
+        return state.renderer
+            .send(NewThreadPage {
+                alerts: vec![NEW_THREAD_LENGTH_ERR],
+                title: Some(input.0.title),
+                body: Some(input.0.body),
+            })
+            .flatten()
+            .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
+            .responder();
+    }
+
     // Author is "unwrapped" because the RequireLogin middleware
     // guarantees it to be present.
     let author: Author = req.session().get(AUTHOR).unwrap().unwrap();
@@ -158,7 +173,7 @@ pub fn callback(state: State<AppState>,
 }
 
 
-/// Middleware used to enforce logins unceremonially.
+/// Middleware used to enforce logins unceremoniously.
 pub struct RequireLogin;
 
 impl <S> Middleware<S> for RequireLogin {
