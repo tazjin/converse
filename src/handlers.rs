@@ -32,14 +32,6 @@ pub struct AppState {
     pub renderer: Addr<Syn, Renderer>,
 }
 
-// impl AppState {
-//     fn render_ok<M>(self, msg: M) -> ConverseResponse
-//         where M: Send + Message, Renderer: Handler<M> {
-//         self.renderer.send(msg);
-//         unimplemented!()
-//     }
-// }
-
 pub fn forum_index(state: State<AppState>) -> ConverseResponse {
     state.db.send(ListThreads)
         .and_then(move |res| state.renderer.send(IndexPage { threads: res.unwrap() }))
