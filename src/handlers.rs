@@ -5,7 +5,7 @@
 //! the tera templates stored in the `/templates` directory in the
 //! project root.
 
-use actix::prelude::{Addr, Syn};
+use actix::prelude::*;
 use actix_web;
 use actix_web::*;
 use actix_web::middleware::{Started, Middleware, RequestSession};
@@ -15,8 +15,11 @@ use futures::Future;
 use models::*;
 use oidc::*;
 use tera;
+use render::*;
 
 type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;
+
+const HTML: &'static str = "text/html";
 
 /// Represents the state carried by the web server actors.
 pub struct AppState {
@@ -26,68 +29,47 @@ pub struct AppState {
     /// Address of the OIDC actor
     pub oidc: Addr<Syn, OidcExecutor>,
 
-    /// Compiled templates
-    pub tera: tera::Tera,
+    /// Address of the rendering actor
+    pub renderer: Addr<Syn, Renderer>,
 }
 
-/// This function renders an overview of threads into the default
-/// thread list template.
-fn render_threads(tpl: &tera::Tera, threads: Vec<Thread>) -> Result<HttpResponse> {
-    let mut ctx = tera::Context::new();
-    ctx.add("threads", &threads);
-    let body = tpl.render("index.html", &ctx)?;
-    Ok(HttpResponse::Ok().content_type("text/html").body(body))
-}
+// impl AppState {
+//     fn render_ok<M>(self, msg: M) -> ConverseResponse
+//         where M: Send + Message, Renderer: Handler<M> {
+//         self.renderer.send(msg);
+//         unimplemented!()
+//     }
+// }
 
 pub fn forum_index(state: State<AppState>) -> ConverseResponse {
     state.db.send(ListThreads)
+        .and_then(move |res| state.renderer.send(IndexPage { threads: res.unwrap() }))
         .from_err()
-        .and_then(move |res| match res {
-            Ok(threads) => Ok(render_threads(&state.tera, threads)?),
-            Err(err) => {
-                error!("Error loading threads: {}", err);
-                Ok(HttpResponse::InternalServerError().into())
-            }
-        })
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
         .responder()
-}
-
-/// This function renders a single forum thread into the default
-/// thread view.
-fn render_thread(tpl: &tera::Tera, thread: Thread, posts: Vec<Post>)
-                 -> Result<HttpResponse> {
-    let mut ctx = tera::Context::new();
-    ctx.add("thread", &thread);
-    ctx.add("posts", &posts);
-
-    let body = tpl.render("thread.html", &ctx)?;
-    Ok(HttpResponse::Ok()
-        .content_type("text/html")
-        .body(body))
 }
 
 /// This handler retrieves and displays a single forum thread.
 pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseResponse {
     let id = thread_id.into_inner();
     state.db.send(GetThread(id))
-        .from_err()
-        .and_then(move |res| match res {
-            Ok((thread, posts)) => Ok(render_thread(&state.tera, thread, posts)?),
-            Err(err) => {
-                error!("Error loading thread {}: {}", id, err);
-                Ok(HttpResponse::InternalServerError().into())
-            }
+        .and_then(move |res| {
+            let u = res.unwrap();
+            state.renderer.send(ThreadPage {
+                thread: u.0,
+                posts: u.1,
+            })
         })
+        .from_err()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
         .responder()
 }
 
 /// This handler presents the user with the "New Thread" form.
-pub fn new_thread(state: State<AppState>) -> Result<HttpResponse> {
-    let ctx = tera::Context::new();
-    let body = state.tera.render("new-thread.html", &ctx)?;
-    Ok(HttpResponse::Ok()
-       .content_type("text/html")
-       .body(body))
+pub fn new_thread(state: State<AppState>) -> ConverseResponse {
+    state.renderer.send(NewThreadPage).from_err()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res.unwrap()))
+        .responder()
 }
 
 #[derive(Deserialize)]
