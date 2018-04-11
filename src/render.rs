@@ -29,12 +29,30 @@ impl Message for IndexPage {
     type Result = Result<String>;
 }
 
+#[derive(Debug, Serialize)]
+struct IndexThread {
+    id: i32,
+    title: String,
+    posted: DateTime<Utc>,
+    author_name: String,
+}
+
 impl Handler<IndexPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: IndexPage, _: &mut Self::Context) -> Self::Result {
+        let threads: Vec<IndexThread> = msg.threads
+            .into_iter()
+            .map(|thread| IndexThread {
+                id: thread.id,
+                title: escape_html(&thread.title),
+                posted: thread.posted,
+                author_name: thread.author_name,
+            })
+            .collect();
+
         let mut ctx = Context::new();
-        ctx.add("threads", &msg.threads);
+        ctx.add("threads", &threads);
         Ok(self.tera.render("index.html", &ctx)?)
     }
 }
