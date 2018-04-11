@@ -10,11 +10,10 @@ use actix_web;
 use actix_web::*;
 use actix_web::middleware::{Started, Middleware, RequestSession};
 use db::*;
-use errors::{Result, ConverseError};
+use errors::ConverseError;
 use futures::Future;
 use models::*;
 use oidc::*;
-use tera;
 use render::*;
 
 type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;

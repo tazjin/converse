@@ -3,7 +3,6 @@
 //! them.
 
 use actix::prelude::*;
-use actix_web::HttpResponse;
 use errors::*;
 use md5;
 use models::*;
