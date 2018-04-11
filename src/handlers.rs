@@ -64,6 +64,15 @@ pub fn new_thread(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
+/// This function provides an anonymous "default" author if logins are
+/// not required.
+fn anonymous() -> Author {
+    Author {
+        name: "Anonymous".into(),
+        email: "anonymous@nothing.org".into(),
+    }
+}
+
 #[derive(Deserialize)]
 pub struct NewThreadForm {
     pub title: String,
@@ -90,9 +99,10 @@ pub fn submit_thread(state: State<AppState>,
             .responder();
     }
 
-    // Author is "unwrapped" because the RequireLogin middleware
-    // guarantees it to be present.
-    let author: Author = req.session().get(AUTHOR).unwrap().unwrap();
+    let author: Author = req.session().get(AUTHOR)
+        .unwrap_or_else(|_| Some(anonymous()))
+        .unwrap_or_else(anonymous);
+
     let new_thread = NewThread {
         title: input.0.title,
         body: input.0.body,
@@ -123,9 +133,10 @@ pub struct NewPostForm {
 pub fn reply_thread(state: State<AppState>,
                     input: Form<NewPostForm>,
                     mut req: HttpRequest<AppState>) -> ConverseResponse {
-    // Author is "unwrapped" because the RequireLogin middleware
-    // guarantees it to be present.
-    let author: Author = req.session().get(AUTHOR).unwrap().unwrap();
+    let author: Author = req.session().get(AUTHOR)
+        .unwrap_or_else(|_| Some(anonymous()))
+        .unwrap_or_else(anonymous);
+
     let new_post = NewPost {
         thread_id: input.thread_id,
         body: input.0.body,

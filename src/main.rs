@@ -112,6 +112,8 @@ fn main() {
         key_bytes
     };
 
+    let require_login = config_default("REQUIRE_LOGIN", "true".into()) == "true";
+
     server::new(move || {
         let state = AppState {
             db: db_addr.clone(),
@@ -123,17 +125,22 @@ fn main() {
             CookieSessionBackend::signed(&key)
                 .secure(base_url.starts_with("https")));
 
-        App::with_state(state)
+        let app = App::with_state(state)
             .middleware(Logger::default())
             .middleware(sessions)
-            .middleware(RequireLogin)
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with3(reply_thread))
             .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
-            .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback))})
+            .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback));
+
+        if require_login {
+            app.middleware(RequireLogin)
+        } else {
+            app
+        }})
         .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
         .start();
 
