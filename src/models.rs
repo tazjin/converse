@@ -16,6 +16,7 @@
 
 use chrono::prelude::{DateTime, Utc};
 use schema::{threads, posts};
+use diesel::sql_types::{Text, Integer};
 
 #[derive(Identifiable, Queryable, Serialize)]
 pub struct Thread {
@@ -68,4 +69,24 @@ pub struct NewPost {
     pub body: String,
     pub author_name: String,
     pub author_email: String,
+}
+
+/// This struct models the response of a full-text search query. It
+/// does not use a table/schema definition struct like the other
+/// tables, as no table of this type actually exists.
+#[derive(QueryableByName, Debug)]
+pub struct SearchResult {
+    #[sql_type = "Integer"]
+    pub post_id: i32,
+    #[sql_type = "Integer"]
+    pub thread_id: i32,
+    #[sql_type = "Text"]
+    pub author: String,
+    #[sql_type = "Text"]
+    pub title: String,
+
+    /// Headline represents the result of Postgres' ts_headline()
+    /// function, which highlights search terms in the search results.
+    #[sql_type = "Text"]
+    pub headline: String,
 }
