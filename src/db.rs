@@ -162,6 +162,7 @@ SELECT post_id,
   FROM search_index, search_query
   WHERE document @@ query
   ORDER BY ts_rank(document, query) DESC
+  LIMIT 50
 "#;
 
 impl Handler<SearchPosts> for DbExecutor {
