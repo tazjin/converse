@@ -10,8 +10,8 @@ CREATE MATERIALIZED VIEW search_index AS
          t.id AS thread_id,
          t.title AS title,
          p.body AS body,
-         setweight(to_tsvector('english', t.title), 'A') ||
-         setweight(to_tsvector('english', p.body), 'B') ||
+         setweight(to_tsvector('english', t.title), 'B') ||
+         setweight(to_tsvector('english', p.body), 'A') ||
          setweight(to_tsvector('simple', t.author_name), 'C') ||
          setweight(to_tsvector('simple', p.author_name), 'C') AS document
     FROM posts p
