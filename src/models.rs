@@ -74,7 +74,7 @@ pub struct NewPost {
 /// This struct models the response of a full-text search query. It
 /// does not use a table/schema definition struct like the other
 /// tables, as no table of this type actually exists.
-#[derive(QueryableByName, Debug)]
+#[derive(QueryableByName, Debug, Serialize)]
 pub struct SearchResult {
     #[sql_type = "Integer"]
     pub post_id: i32,

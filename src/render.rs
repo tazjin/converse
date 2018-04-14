@@ -175,3 +175,24 @@ impl Handler<NewThreadPage> for Renderer {
         Ok(self.tera.render("new-thread.html", &ctx)?)
     }
 }
+
+/// Message used to render search results
+pub struct SearchResultPage {
+    pub query: String,
+    pub results: Vec<SearchResult>,
+}
+
+impl Message for SearchResultPage {
+    type Result = Result<String>;
+}
+
+impl Handler<SearchResultPage> for Renderer {
+    type Result = Result<String>;
+
+    fn handle(&mut self, msg: SearchResultPage, _: &mut Self::Context) -> Self::Result {
+        let mut ctx = Context::new();
+        ctx.add("query", &msg.query);
+        ctx.add("results", &msg.results);
+        Ok(self.tera.render("search.html", &ctx)?)
+    }
+}

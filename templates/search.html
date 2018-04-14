@@ -18,20 +18,26 @@
           <input class="form-control mr-sm-2" type="search" placeholder="Search" name="query" aria-label="Search">
           <button class="btn btn-outline-success my-2 my-sm-0 mr-1" type="submit">Search</button>
           <a class="btn btn-outline-secondary my-2" href="/thread/new">New thread</a>
+          <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
         </form>
       </nav>
     </header>
     <div class="container">
       <div class="row">
+        <div class="col-4">
+          <h2>Search results for '{{ query }}':</h2>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-12">
           <div class="list-group">
-            {% for thread in threads -%}
-            <a href="/thread/{{ thread.id }}" class="list-group-item list-group-item-action flex-column align-items-start {% if thread.sticky %} bg-secondary text-white {% endif %}">
+            {% for result in results -%}
+            <a href="/thread/{{ result.thread_id }}#post-{{ result.post_id }}" class="list-group-item flex-column list-group-item-action align-items-start">
               <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{{ thread.title }}</h5>
-                <small class="{%if thread.sticky %}text-white{% else %}text-muted{% endif %}">{{ thread.posted }}</small>
+                <h5 class="mb-1">In thread '{{ result.title }}':</h5>
+                <div>{{ result.headline }}</div>
+                <div>(Posted by <i>{{ result.author }})</i></div>
               </div>
-              <p class="mb-1">Created by {{ thread.author_name }}</p>
             </a>
             {%- endfor %}
           </div>

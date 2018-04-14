@@ -176,6 +176,22 @@ pub fn reply_thread(state: State<AppState>,
         .responder()
 }
 
+/// This handler executes a full-text search on the forum database and
+/// displays the results to the user.
+pub fn search_forum(state: State<AppState>,
+                    query: Form<SearchPosts>) -> ConverseResponse {
+    let query_string = query.0.query.clone();
+    state.db.send(query.0)
+        .flatten()
+        .and_then(move |results| state.renderer.send(SearchResultPage {
+            results,
+            query: query_string,
+        }).from_err())
+        .flatten()
+        .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
+        .responder()
+}
+
 /// This handler initiates an OIDC login.
 pub fn login(state: State<AppState>) -> ConverseResponse {
     state.oidc.send(GetLoginUrl)
