@@ -179,9 +179,9 @@ pub fn reply_thread(state: State<AppState>,
 /// This handler executes a full-text search on the forum database and
 /// displays the results to the user.
 pub fn search_forum(state: State<AppState>,
-                    query: Form<SearchPosts>) -> ConverseResponse {
-    let query_string = query.0.query.clone();
-    state.db.send(query.0)
+                    query: Query<SearchPosts>) -> ConverseResponse {
+    let query_string = query.query.clone();
+    state.db.send(query.into_inner())
         .flatten()
         .and_then(move |results| state.renderer.send(SearchResultPage {
             results,
