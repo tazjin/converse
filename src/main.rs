@@ -42,6 +42,8 @@ extern crate rand;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
+extern crate tokio;
+extern crate tokio_timer;
 extern crate url;
 extern crate url_serde;
 
@@ -85,6 +87,8 @@ fn main() {
     let pool = Pool::builder().build(manager).expect("Failed to initialise DB pool");
 
     let db_addr = SyncArbiter::start(2, move || DbExecutor(pool.clone()));
+
+    schedule_search_refresh(db_addr.clone());
 
     info!("Initialising OIDC integration ...");
     let oidc_url = config("OIDC_DISCOVERY_URL");
@@ -161,4 +165,19 @@ fn main() {
         .start();
 
     let _ = sys.run();
+}
+
+fn schedule_search_refresh(db: Addr<Syn, DbExecutor>) {
+    use tokio::prelude::*;
+    use tokio::timer::Interval;
+    use std::time::{Duration, Instant};
+    use std::thread;
+
+    let task = Interval::new(Instant::now(), Duration::from_secs(60))
+        .from_err()
+        .for_each(move |_| db.send(db::RefreshSearchView).flatten())
+        .map_err(|err| error!("Error while updating search view: {}", err));
+        //.and_then(|_| debug!("Refreshed search view in DB"));
+
+    thread::spawn(|| tokio::run(task));
 }

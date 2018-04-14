@@ -177,3 +177,24 @@ impl Handler<SearchPosts> for DbExecutor {
         Ok(search_results)
     }
 }
+
+/// Message that triggers a refresh of the view used for full-text
+/// searching.
+pub struct RefreshSearchView;
+
+impl Message for RefreshSearchView {
+    type Result = Result<()>;
+}
+
+const REFRESH_QUERY: &'static str = "REFRESH MATERIALIZED VIEW search_index";
+
+impl Handler<RefreshSearchView> for DbExecutor {
+    type Result = Result<()>;
+
+    fn handle(&mut self, _: RefreshSearchView, _: &mut Self::Context) -> Self::Result {
+        let conn = self.0.get()?;
+        debug!("Refreshing search_index view in DB");
+        sql_query(REFRESH_QUERY).execute(&conn)?;
+        Ok(())
+    }
+}

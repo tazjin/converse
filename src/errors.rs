@@ -30,6 +30,7 @@ use diesel;
 use r2d2;
 use reqwest;
 use tera;
+use tokio_timer;
 
 pub type Result<T> = result::Result<T, ConverseError>;
 
@@ -49,6 +50,9 @@ pub enum ConverseError {
 
     #[fail(display = "error occured during request handling: {}", error)]
     ActixWeb { error: actix_web::Error },
+
+    #[fail(display = "error occured running timer: {}", error)]
+    Timer { error: tokio_timer::Error },
 
     // This variant is used as a catch-all for wrapping
     // actix-web-compatible response errors, such as the errors it
@@ -96,6 +100,12 @@ impl From<reqwest::Error> for ConverseError {
         ConverseError::InternalError {
             reason: format!("Failed to make HTTP request: {}", error),
         }
+    }
+}
+
+impl From<tokio_timer::Error> for ConverseError {
+    fn from(error: tokio_timer::Error) -> ConverseError {
+        ConverseError::Timer { error }
     }
 }
 
