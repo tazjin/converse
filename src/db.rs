@@ -17,7 +17,8 @@
 //! This module implements the database connection actor.
 
 use actix::prelude::*;
-use diesel;
+use diesel::{self, sql_query};
+use diesel::sql_types::Text;
 use diesel::prelude::*;
 use diesel::r2d2::{Pool, ConnectionManager};
 use models::*;
@@ -136,5 +137,43 @@ impl Handler<CreatePost> for DbExecutor {
         Ok(diesel::insert_into(posts::table)
            .values(&msg.0)
            .get_result(&conn)?)
+    }
+}
+
+/// Message used to search for posts
+#[derive(Deserialize)]
+pub struct SearchPosts { pub query: String }
+
+impl Message for SearchPosts {
+    type Result = Result<Vec<SearchResult>>;
+}
+
+/// Raw PostgreSQL query used to perform full-text search on posts
+/// with a supplied phrase. For now, the query language is hardcoded
+/// to English and only "plain" queries (i.e. no searches for exact
+/// matches or more advanced query syntax) are supported.
+const SEARCH_QUERY: &'static str = r#"
+WITH search_query (query) AS (VALUES (plainto_tsquery('english', $1)))
+SELECT post_id,
+       thread_id,
+       author,
+       title,
+       ts_headline('english', body, query) AS headline
+  FROM search_index, search_query
+  WHERE document @@ query
+  ORDER BY ts_rank(document, query) DESC
+"#;
+
+impl Handler<SearchPosts> for DbExecutor {
+    type Result = <SearchPosts as Message>::Result;
+
+    fn handle(&mut self, msg: SearchPosts, _: &mut Self::Context) -> Self::Result {
+        let conn = self.0.get()?;
+
+        let search_results = sql_query(SEARCH_QUERY)
+            .bind::<Text, _>(msg.query)
+            .get_results::<SearchResult>(&conn)?;
+
+        Ok(search_results)
     }
 }
