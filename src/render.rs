@@ -72,7 +72,7 @@ impl Handler<IndexPage> for Renderer {
                 id: thread.thread_id,
                 title: escape_html(&thread.title),
                 posted: thread.posted.into(),
-                author_name: thread.author_name,
+                author_name: thread.thread_author,
             })
             .collect();
 

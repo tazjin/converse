@@ -16,6 +16,7 @@ table! {
         posted -> Timestamptz,
         author_name -> Varchar,
         author_email -> Varchar,
+        sticky -> Bool,
     }
 }
 
@@ -24,9 +25,12 @@ table! {
     thread_index (thread_id){
         thread_id -> Integer,
         title -> Text,
-        author_name -> Text,
-        posted -> Timestamptz,
+        thread_author -> Text,
+        created -> Timestamptz,
+        sticky -> Bool,
         post_id -> Integer,
+        post_author -> Text,
+        posted -> Timestamptz,
     }
 }
 

@@ -24,6 +24,7 @@ pub struct Thread {
     pub posted: DateTime<Utc>,
     pub author_name: String,
     pub author_email: String,
+    pub sticky: bool,
 }
 
 /// This struct is used as the query type for the thread index view,
@@ -33,9 +34,12 @@ pub struct Thread {
 pub struct ThreadIndex {
     pub thread_id: i32,
     pub title: String,
-    pub author_name: String,
-    pub posted: DateTime<Utc>,
+    pub thread_author: String,
+    pub created: DateTime<Utc>,
+    pub sticky: bool,
     pub post_id: i32,
+    pub post_author: String,
+    pub posted: DateTime<Utc>,
 }
 
 #[derive(Identifiable, Queryable, Serialize, Associations)]
