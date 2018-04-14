@@ -23,12 +23,12 @@ table! {
 // Note: Manually inserted as print-schema does not add views.
 table! {
     thread_index (thread_id){
-        thread_id -> Integer,
+        thread_id -> Int4,
         title -> Text,
         thread_author -> Text,
         created -> Timestamptz,
         sticky -> Bool,
-        post_id -> Integer,
+        post_id -> Int4,
         post_author -> Text,
         posted -> Timestamptz,
     }
