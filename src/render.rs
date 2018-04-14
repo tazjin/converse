@@ -58,6 +58,7 @@ impl Message for IndexPage {
 struct IndexThread {
     id: i32,
     title: String,
+    sticky: bool,
     posted: FormattedDate,
     author_name: String,
 }
@@ -71,6 +72,7 @@ impl Handler<IndexPage> for Renderer {
             .map(|thread| IndexThread {
                 id: thread.thread_id,
                 title: escape_html(&thread.title),
+                sticky: thread.sticky,
                 posted: thread.posted.into(),
                 author_name: thread.thread_author,
             })
