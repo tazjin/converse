@@ -165,9 +165,9 @@ pub fn reply_thread(state: State<AppState>,
     };
 
     state.db.send(CreatePost(new_post))
+        .flatten()
         .from_err()
-        .and_then(move |res| {
-            let post = res?;
+        .and_then(move |post| {
             info!("Posted reply {} to thread {}", post.id, post.thread_id);
             Ok(HttpResponse::SeeOther()
                .header("Location", format!("/thread/{}#post-{}", post.thread_id, post.id))
