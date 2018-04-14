@@ -32,11 +32,10 @@
         <div class="col-12">
           <div class="list-group">
             {% for result in results -%}
-            <a href="/thread/{{ result.thread_id }}#post-{{ result.post_id }}" class="list-group-item flex-column list-group-item-action align-items-start">
+            <a href="/thread/{{ result.thread_id }}#post-{{ result.post_id }}" class="list-group-item list-group-item-action flex-column align-items-start">
               <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">In thread '{{ result.title }}':</h5>
-                <div>{{ result.headline }}</div>
-                <div>(Posted by <i>{{ result.author }})</i></div>
+                <p class="mb-1">{{ result.headline }}</p>
+                <small class="float-right text-muted"><i>(Posted in '{{ result.title }}' by {{ result.author }})</i></small>
               </div>
             </a>
             {%- endfor %}

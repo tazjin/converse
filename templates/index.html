@@ -26,10 +26,10 @@
         <div class="col-12">
           <div class="list-group">
             {% for thread in threads -%}
-            <a href="/thread/{{ thread.id }}" class="list-group-item list-group-item-action flex-column align-items-start {% if thread.sticky %} bg-secondary text-white {% endif %}">
+            <a href="/thread/{{ thread.id }}" class="list-group-item list-group-item-action flex-column align-items-start {%- if thread.sticky %} bg-secondary text-white {% endif -%}">
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{% if thread.sticky %}<span class="badge badge-light">Sticky</span> {% endif %}{{ thread.title }}</h5>
-                <small class="{%if thread.sticky %}text-white{% else %}text-muted{% endif %}">{{ thread.posted }}</small>
+                <small class="{% if thread.sticky %}text-white{% else %}text-muted{% endif %}">{{ thread.posted }}</small>
               </div>
               <p class="mb-1">Created by {{ thread.author_name }}</p>
             </a>
