@@ -19,6 +19,17 @@ table! {
     }
 }
 
+// Note: Manually inserted as print-schema does not add views.
+table! {
+    thread_index (thread_id){
+        thread_id -> Integer,
+        title -> Text,
+        author_name -> Text,
+        posted -> Timestamptz,
+        post_id -> Integer,
+    }
+}
+
 joinable!(posts -> threads (thread_id));
 
 allow_tables_to_appear_in_same_query!(

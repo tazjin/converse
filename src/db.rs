@@ -36,19 +36,18 @@ impl Actor for DbExecutor {
 pub struct ListThreads;
 
 impl Message for ListThreads {
-    type Result = Result<Vec<Thread>>;
+    type Result = Result<Vec<ThreadIndex>>;
 }
 
 impl Handler<ListThreads> for DbExecutor {
     type Result = <ListThreads as Message>::Result;
 
     fn handle(&mut self, _: ListThreads, _: &mut Self::Context) -> Self::Result {
-        use schema::threads::dsl::*;
+        use schema::thread_index::dsl::*;
 
         let conn = self.0.get()?;
-        let results = threads
-            .order(posted.desc())
-            .load::<Thread>(&conn)?;
+        let results = thread_index
+            .load::<ThreadIndex>(&conn)?;
         Ok(results)
     }
 }

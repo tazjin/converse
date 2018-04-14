@@ -47,7 +47,7 @@ impl From<DateTime<Utc>> for FormattedDate {
 
 /// Message used to render the index page.
 pub struct IndexPage {
-    pub threads: Vec<Thread>,
+    pub threads: Vec<ThreadIndex>,
 }
 
 impl Message for IndexPage {
@@ -69,7 +69,7 @@ impl Handler<IndexPage> for Renderer {
         let threads: Vec<IndexThread> = msg.threads
             .into_iter()
             .map(|thread| IndexThread {
-                id: thread.id,
+                id: thread.thread_id,
                 title: escape_html(&thread.title),
                 posted: thread.posted.into(),
                 author_name: thread.author_name,

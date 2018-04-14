@@ -26,6 +26,18 @@ pub struct Thread {
     pub author_email: String,
 }
 
+/// This struct is used as the query type for the thread index view,
+/// which lists the index of threads ordered by the last post in each
+/// thread.
+#[derive(Queryable, Serialize)]
+pub struct ThreadIndex {
+    pub thread_id: i32,
+    pub title: String,
+    pub author_name: String,
+    pub posted: DateTime<Utc>,
+    pub post_id: i32,
+}
+
 #[derive(Identifiable, Queryable, Serialize, Associations)]
 #[belongs_to(Thread)]
 pub struct Post {
