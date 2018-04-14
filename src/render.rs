@@ -120,9 +120,10 @@ fn md5_hex(input: &[u8]) -> String {
 
 fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadPage {
     let posts = page.posts.into_iter().map(|post| {
+        let escaped_body = escape_html(&post.body);
         RenderablePost {
             id: post.id,
-            body: markdown_to_html(&post.body, comrak),
+            body: markdown_to_html(&escaped_body, comrak),
             posted: post.posted.into(),
             author_name: post.author_name,
             author_gravatar: md5_hex(post.author_email.as_bytes()),
