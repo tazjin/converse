@@ -5,7 +5,7 @@ use diesel;
 use diesel::prelude::*;
 use diesel::r2d2::{Pool, ConnectionManager};
 use models::*;
-use errors::Result;
+use errors::{ConverseError, Result};
 
 /// The DB actor itself. Several of these will be run in parallel by
 /// `SyncArbiter`.
@@ -62,7 +62,10 @@ impl Handler<GetThread> for DbExecutor {
 }
 
 /// Message used to create a new thread
-pub struct CreateThread(pub NewThread);
+pub struct CreateThread {
+    pub new_thread: NewThread,
+    pub body: String,
+}
 
 impl Message for CreateThread {
     type Result = Result<Thread>;
@@ -73,12 +76,30 @@ impl Handler<CreateThread> for DbExecutor {
 
     fn handle(&mut self, msg: CreateThread, _: &mut Self::Context) -> Self::Result {
         use schema::threads;
+        use schema::posts;
 
         let conn = self.0.get()?;
 
-        Ok(diesel::insert_into(threads::table)
-           .values(&msg.0)
-           .get_result(&conn)?)
+        conn.transaction::<Thread, ConverseError, _>(|| {
+            // First insert the thread structure itself
+            let thread: Thread = diesel::insert_into(threads::table)
+                .values(&msg.new_thread)
+                .get_result(&conn)?;
+
+            // ... then create the first post in the thread.
+            let new_post = NewPost {
+                thread_id: thread.id,
+                body: msg.body,
+                author_name: msg.new_thread.author_name.clone(),
+                author_email: msg.new_thread.author_email.clone(),
+            };
+
+            diesel::insert_into(posts::table)
+                .values(&new_post)
+                .execute(&conn)?;
+
+            Ok(thread)
+        })
     }
 }
 

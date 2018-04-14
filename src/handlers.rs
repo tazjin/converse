@@ -105,12 +105,16 @@ pub fn submit_thread(state: State<AppState>,
 
     let new_thread = NewThread {
         title: input.0.title,
-        body: input.0.body,
         author_name: author.name,
         author_email: author.email,
     };
 
-    state.db.send(CreateThread(new_thread))
+    let msg = CreateThread {
+        new_thread,
+        body: input.0.body,
+    };
+
+    state.db.send(msg)
         .from_err()
         .and_then(move |res| {
             let thread = res?;

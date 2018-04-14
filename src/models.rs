@@ -5,7 +5,6 @@ use schema::{threads, posts};
 pub struct Thread {
     pub id: i32,
     pub title: String,
-    pub body: String,
     pub posted: DateTime<Utc>,
     pub author_name: String,
     pub author_email: String,
@@ -26,7 +25,6 @@ pub struct Post {
 #[table_name="threads"]
 pub struct NewThread {
     pub title: String,
-    pub body: String,
     pub author_name: String,
     pub author_email: String,
 }

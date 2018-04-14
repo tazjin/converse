@@ -101,24 +101,15 @@ fn md5_hex(input: &[u8]) -> String {
 }
 
 fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadPage {
-    let mut posts = vec![RenderablePost {
-        // Always pin the ID of the first post.
-        id: 0,
-        body: markdown_to_html(&page.thread.body, comrak),
-        posted: page.thread.posted.into(),
-        author_name: page.thread.author_name,
-        author_gravatar: md5_hex(page.thread.author_email.as_bytes()),
-    }];
-
-    for post in page.posts {
-        posts.push(RenderablePost {
+    let posts = page.posts.into_iter().map(|post| {
+        RenderablePost {
             id: post.id,
             body: markdown_to_html(&post.body, comrak),
             posted: post.posted.into(),
             author_name: post.author_name,
             author_gravatar: md5_hex(post.author_email.as_bytes()),
-        });
-    }
+        }
+    }).collect();
 
     RenderableThreadPage {
         posts,

@@ -13,7 +13,6 @@ table! {
     threads (id) {
         id -> Int4,
         title -> Varchar,
-        body -> Text,
         posted -> Timestamptz,
         author_name -> Varchar,
         author_email -> Varchar,
