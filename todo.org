@@ -1,7 +1,7 @@
 * DONE Pin *-versions in cargo.toml
 * DONE Markdown support
 * DONE Post ordering as expected
-* TODO Stickies!
+* DONE Stickies!
 * TODO Configurable number of DB workers
 * TODO Match certain types of Diesel errors (esp. for "not found")
 * TODO Sketch out categories vs. tags system
