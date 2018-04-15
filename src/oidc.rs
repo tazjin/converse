@@ -70,10 +70,7 @@ impl Actor for OidcExecutor {
 
 /// Message used to request the login URL:
 pub struct GetLoginUrl; // TODO: Add a nonce parameter stored in session.
-
-impl Message for GetLoginUrl {
-    type Result = String;
-}
+message!(GetLoginUrl, String);
 
 impl Handler<GetLoginUrl> for OidcExecutor {
     type Result = String;
@@ -95,10 +92,7 @@ impl Handler<GetLoginUrl> for OidcExecutor {
 /// Message used to request the token from the returned code and
 /// retrieve userinfo from the appropriate endpoint.
 pub struct RetrieveToken(pub CodeResponse);
-
-impl Message for RetrieveToken {
-    type Result = Result<Author>;
-}
+message!(RetrieveToken, Result<Author>);
 
 #[derive(Debug, Deserialize)]
 struct TokenResponse {

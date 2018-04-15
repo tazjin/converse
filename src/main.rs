@@ -47,6 +47,16 @@ extern crate tokio_timer;
 extern crate url;
 extern crate url_serde;
 
+/// Simple macro used to reduce boilerplate when defining actor
+/// message types.
+macro_rules! message {
+    ( $t:ty, $r:ty ) => {
+        impl Message for $t {
+            type Result = $r;
+        }
+    }
+}
+
 pub mod db;
 pub mod errors;
 pub mod handlers;

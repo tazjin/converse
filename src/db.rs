@@ -35,10 +35,7 @@ impl Actor for DbExecutor {
 /// Message used to request a list of threads.
 /// TODO: This should support page numbers.
 pub struct ListThreads;
-
-impl Message for ListThreads {
-    type Result = Result<Vec<ThreadIndex>>;
-}
+message!(ListThreads, Result<Vec<ThreadIndex>>);
 
 impl Handler<ListThreads> for DbExecutor {
     type Result = <ListThreads as Message>::Result;
@@ -56,10 +53,7 @@ impl Handler<ListThreads> for DbExecutor {
 /// Message used to fetch a specific thread. Returns the thread and
 /// its posts.
 pub struct GetThread(pub i32);
-
-impl Message for GetThread {
-    type Result = Result<(Thread, Vec<Post>)>;
-}
+message!(GetThread, Result<(Thread, Vec<Post>)>);
 
 impl Handler<GetThread> for DbExecutor {
     type Result = <GetThread as Message>::Result;
@@ -82,10 +76,7 @@ pub struct CreateThread {
     pub new_thread: NewThread,
     pub post: String,
 }
-
-impl Message for CreateThread {
-    type Result = Result<Thread>;
-}
+message!(CreateThread, Result<Thread>);
 
 impl Handler<CreateThread> for DbExecutor {
     type Result = <CreateThread as Message>::Result;
@@ -121,10 +112,7 @@ impl Handler<CreateThread> for DbExecutor {
 
 /// Message used to create a new reply
 pub struct CreatePost(pub NewPost);
-
-impl Message for CreatePost {
-    type Result = Result<Post>;
-}
+message!(CreatePost, Result<Post>);
 
 impl Handler<CreatePost> for DbExecutor {
     type Result = <CreatePost as Message>::Result;
@@ -143,10 +131,7 @@ impl Handler<CreatePost> for DbExecutor {
 /// Message used to search for posts
 #[derive(Deserialize)]
 pub struct SearchPosts { pub query: String }
-
-impl Message for SearchPosts {
-    type Result = Result<Vec<SearchResult>>;
-}
+message!(SearchPosts, Result<Vec<SearchResult>>);
 
 /// Raw PostgreSQL query used to perform full-text search on posts
 /// with a supplied phrase. For now, the query language is hardcoded
@@ -182,10 +167,7 @@ impl Handler<SearchPosts> for DbExecutor {
 /// Message that triggers a refresh of the view used for full-text
 /// searching.
 pub struct RefreshSearchView;
-
-impl Message for RefreshSearchView {
-    type Result = Result<()>;
-}
+message!(RefreshSearchView, Result<()>);
 
 const REFRESH_QUERY: &'static str = "REFRESH MATERIALIZED VIEW search_index";
 

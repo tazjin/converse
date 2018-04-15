@@ -49,10 +49,7 @@ impl From<DateTime<Utc>> for FormattedDate {
 pub struct IndexPage {
     pub threads: Vec<ThreadIndex>,
 }
-
-impl Message for IndexPage {
-    type Result = Result<String>;
-}
+message!(IndexPage, Result<String>);
 
 #[derive(Debug, Serialize)]
 struct IndexThread {
@@ -90,10 +87,7 @@ pub struct ThreadPage {
     pub thread: Thread,
     pub posts: Vec<Post>,
 }
-
-impl Message for ThreadPage {
-    type Result = Result<String>;
-}
+message!(ThreadPage, Result<String>);
 
 // "Renderable" structures with data transformations applied.
 #[derive(Debug, Serialize)]
@@ -200,10 +194,7 @@ pub struct NewThreadPage {
     pub title: Option<String>,
     pub post: Option<String>,
 }
-
-impl Message for NewThreadPage {
-    type Result = Result<String>;
-}
+message!(NewThreadPage, Result<String>);
 
 impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
@@ -225,10 +216,7 @@ pub struct SearchResultPage {
     pub query: String,
     pub results: Vec<SearchResult>,
 }
-
-impl Message for SearchResultPage {
-    type Result = Result<String>;
-}
+message!(SearchResultPage, Result<String>);
 
 impl Handler<SearchResultPage> for Renderer {
     type Result = Result<String>;
