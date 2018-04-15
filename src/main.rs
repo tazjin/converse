@@ -57,14 +57,16 @@ pub mod schema;
 
 use actix::prelude::*;
 use actix_web::*;
-use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
 use actix_web::http::Method;
+use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
 use db::*;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
-use std::env;
-use rand::{OsRng, Rng};
 use handlers::*;
+use oidc::OidcExecutor;
+use rand::{OsRng, Rng};
+use std::env;
+use render::Renderer;
 
 fn config(name: &str) -> String {
     env::var(name).expect(&format!("{} must be set", name))
@@ -74,37 +76,47 @@ fn config_default(name: &str, default: &str) -> String {
     env::var(name).unwrap_or(default.into())
 }
 
-fn main() {
-    env_logger::init();
-
-    info!("Welcome to Converse! Hold on tight while we're getting ready.");
-    let sys = actix::System::new("converse");
-
+fn start_db_executor() -> Addr<Syn, DbExecutor> {
     info!("Initialising database connection pool ...");
     let db_url = config("DATABASE_URL");
 
     let manager = ConnectionManager::<PgConnection>::new(db_url);
     let pool = Pool::builder().build(manager).expect("Failed to initialise DB pool");
 
-    let db_addr = SyncArbiter::start(2, move || DbExecutor(pool.clone()));
+    SyncArbiter::start(2, move || DbExecutor(pool.clone()))
+}
 
-    schedule_search_refresh(db_addr.clone());
+fn schedule_search_refresh(db: Addr<Syn, DbExecutor>) {
+    use tokio::prelude::*;
+    use tokio::timer::Interval;
+    use std::time::{Duration, Instant};
+    use std::thread;
 
+    let task = Interval::new(Instant::now(), Duration::from_secs(60))
+        .from_err()
+        .for_each(move |_| db.send(db::RefreshSearchView).flatten())
+        .map_err(|err| error!("Error while updating search view: {}", err));
+
+    thread::spawn(|| tokio::run(task));
+}
+
+fn start_oidc_executor(base_url: &str) -> Addr<Syn, OidcExecutor> {
     info!("Initialising OIDC integration ...");
     let oidc_url = config("OIDC_DISCOVERY_URL");
     let oidc_config = oidc::load_oidc(&oidc_url)
         .expect("Failed to retrieve OIDC discovery document");
-    let base_url = config("BASE_URL");
 
     let oidc = oidc::OidcExecutor {
         oidc_config,
         client_id: config("OIDC_CLIENT_ID"),
         client_secret: config("OIDC_CLIENT_SECRET"),
-        redirect_uri: format!("{}/oidc/callback", config("BASE_URL")),
+        redirect_uri: format!("{}/oidc/callback", base_url),
     };
 
-    let oidc_addr: Addr<Syn, oidc::OidcExecutor> = oidc.start();
+    oidc.start()
+}
 
+fn start_renderer() -> Addr<Syn, Renderer> {
     info!("Compiling templates ...");
     let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
     let mut tera = compile_templates!(template_path);
@@ -118,20 +130,26 @@ fn main() {
         ext_footnotes: true,
         ..Default::default()
     };
-    let renderer = render::Renderer{ tera, comrak };
-    let renderer_addr: Addr<Syn, render::Renderer> = renderer.start();
 
+    Renderer{ tera, comrak }.start()
+}
+
+fn gen_session_key() -> [u8; 64] {
+    let mut key_bytes = [0; 64];
+    let mut rng = OsRng::new()
+        .expect("Failed to retrieve RNG for key generation");
+    rng.fill_bytes(&mut key_bytes);
+
+    key_bytes
+}
+
+fn start_http_server(base_url: String,
+                     db_addr: Addr<Syn, DbExecutor>,
+                     oidc_addr: Addr<Syn, OidcExecutor>,
+                     renderer_addr: Addr<Syn, Renderer>) {
     info!("Initialising HTTP server ...");
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
-    let key = {
-        let mut key_bytes = [0; 32];
-        let mut rng = OsRng::new()
-            .expect("Failed to retrieve RNG for key generation");
-        rng.fill_bytes(&mut key_bytes);
-
-        key_bytes
-    };
-
+    let key = gen_session_key();
     let require_login = config_default("REQUIRE_LOGIN", "true".into()) == "true";
 
     server::new(move || {
@@ -164,21 +182,23 @@ fn main() {
         }})
         .bind(&bind_host).expect(&format!("Could not bind on '{}'", bind_host))
         .start();
-
-    let _ = sys.run();
 }
 
-fn schedule_search_refresh(db: Addr<Syn, DbExecutor>) {
-    use tokio::prelude::*;
-    use tokio::timer::Interval;
-    use std::time::{Duration, Instant};
-    use std::thread;
+fn main() {
+    env_logger::init();
 
-    let task = Interval::new(Instant::now(), Duration::from_secs(60))
-        .from_err()
-        .for_each(move |_| db.send(db::RefreshSearchView).flatten())
-        .map_err(|err| error!("Error while updating search view: {}", err));
-        //.and_then(|_| debug!("Refreshed search view in DB"));
+    info!("Welcome to Converse! Hold on tight while we're getting ready.");
+    let sys = actix::System::new("converse");
 
-    thread::spawn(|| tokio::run(task));
+    let base_url = config("BASE_URL");
+
+    let db_addr = start_db_executor();
+    let oidc_addr = start_oidc_executor(&base_url);
+    let renderer_addr = start_renderer();
+
+    schedule_search_refresh(db_addr.clone());
+
+    start_http_server(base_url, db_addr, oidc_addr, renderer_addr);
+
+    sys.run();
 }
