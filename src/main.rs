@@ -152,7 +152,7 @@ fn main() {
             .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
             .resource("/thread/reply", |r| r.method(Method::POST).with3(reply_thread))
-            .resource("/thread/{id}", |r| r.method(Method::GET).with2(forum_thread))
+            .resource("/thread/{id}", |r| r.method(Method::GET).with3(forum_thread))
             .resource("/search", |r| r.method(Method::GET).with2(search_forum))
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
             .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback));

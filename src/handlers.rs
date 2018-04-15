@@ -60,11 +60,18 @@ pub fn forum_index(state: State<AppState>) -> ConverseResponse {
 }
 
 /// This handler retrieves and displays a single forum thread.
-pub fn forum_thread(state: State<AppState>, thread_id: Path<i32>) -> ConverseResponse {
+pub fn forum_thread(state: State<AppState>,
+                    mut req: HttpRequest<AppState>,
+                    thread_id: Path<i32>) -> ConverseResponse {
     let id = thread_id.into_inner();
+    let user = req.session().get(AUTHOR)
+        .unwrap_or_else(|_| None)
+        .map(|a: Author| a.email);
+
     state.db.send(GetThread(id))
         .flatten()
         .and_then(move |res| state.renderer.send(ThreadPage {
+            current_user: user,
             thread: res.0,
             posts: res.1,
         }).from_err())

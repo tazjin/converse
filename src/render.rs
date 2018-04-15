@@ -86,6 +86,7 @@ impl Handler<IndexPage> for Renderer {
 
 /// Message used to render a thread.
 pub struct ThreadPage {
+    pub current_user: Option<String>,
     pub thread: Thread,
     pub posts: Vec<Post>,
 }
@@ -102,6 +103,7 @@ struct RenderablePost {
     posted: FormattedDate,
     author_name: String,
     author_gravatar: String,
+    editable: bool,
 }
 
 /// This structure represents the transformed thread data with
@@ -119,14 +121,21 @@ fn md5_hex(input: &[u8]) -> String {
 }
 
 fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadPage {
+    let user = page.current_user;
+
     let posts = page.posts.into_iter().map(|post| {
         let escaped_body = escape_html(&post.body);
+        let editable = user.clone()
+            .map(|c| post.author_email.eq(&c))
+            .unwrap_or_else(|| false);
+
         RenderablePost {
             id: post.id,
             body: markdown_to_html(&escaped_body, comrak),
             posted: post.posted.into(),
-            author_name: post.author_name,
+            author_name: post.author_name.clone(),
             author_gravatar: md5_hex(post.author_email.as_bytes()),
+            editable,
         }
     }).collect();
 
