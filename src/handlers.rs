@@ -189,6 +189,41 @@ pub fn reply_thread(state: State<AppState>,
         .responder()
 }
 
+/// This handler presents the user with the form to edit a post. If
+/// the user attempts to edit a post that they do not have access to,
+/// they are currently ungracefully redirected back to the post
+/// itself.
+pub fn edit_form(state: State<AppState>,
+                 mut req: HttpRequest<AppState>,
+                 query: Path<GetPost>) -> ConverseResponse {
+    let author: Option<Author> = req.session().get(AUTHOR)
+        .unwrap_or_else(|_| None);
+
+    state.db.send(query.into_inner())
+        .flatten()
+        .from_err()
+        .and_then(move |post| {
+            if let Some(author) = author {
+                if author.email.eq(&post.author_email) {
+                    return Ok(post);
+                }
+            }
+
+            Err(ConverseError::PostEditForbidden { id: post.id })
+        })
+        .and_then(move |post| {
+            let edit_msg = EditPostPage {
+                id: post.id,
+                post: post.body,
+            };
+
+            state.renderer.send(edit_msg).from_err()
+        })
+        .flatten()
+        .map(|page| HttpResponse::Ok().content_type(HTML).body(page))
+        .responder()
+}
+
 /// This handler executes a full-text search on the forum database and
 /// displays the results to the user.
 pub fn search_forum(state: State<AppState>,

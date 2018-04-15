@@ -200,12 +200,34 @@ impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: NewThreadPage, _: &mut Self::Context) -> Self::Result {
-        let ctx: FormContext = FormContext {
+        let ctx = FormContext {
             alerts: msg.alerts,
             title: msg.title,
             post: msg.post,
             ..Default::default()
         };
+        Ok(self.tera.render("post.html", &ctx)?)
+    }
+}
+
+/// Message used to render post editing page.
+pub struct EditPostPage {
+    pub id: i32,
+    pub post: String,
+}
+message!(EditPostPage, Result<String>);
+
+impl Handler<EditPostPage> for Renderer {
+    type Result = Result<String>;
+
+    fn handle(&mut self, msg: EditPostPage, _: &mut Self::Context) -> Self::Result {
+        let ctx = FormContext {
+            mode: EditingMode::EditPost,
+            id: Some(msg.id),
+            post: Some(msg.post),
+            ..Default::default()
+        };
+
         Ok(self.tera.render("post.html", &ctx)?)
     }
 }

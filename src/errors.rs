@@ -54,6 +54,9 @@ pub enum ConverseError {
     #[fail(display = "error occured running timer: {}", error)]
     Timer { error: tokio_timer::Error },
 
+    #[fail(display = "user does not have permission to edit post {}", id)]
+    PostEditForbidden { id: i32 },
+
     // This variant is used as a catch-all for wrapping
     // actix-web-compatible response errors, such as the errors it
     // throws itself.
