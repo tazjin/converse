@@ -159,6 +159,41 @@ impl Handler<ThreadPage> for Renderer {
     }
 }
 
+/// The different types of editing modes supported by the editing
+/// template:
+#[derive(Debug, Serialize)]
+pub enum EditingMode {
+    NewThread,
+    PostReply,
+    EditPost,
+}
+
+impl Default for EditingMode {
+    fn default() -> EditingMode { EditingMode::NewThread }
+}
+
+/// This struct represents the context submitted to the template used
+/// for rendering the new thread, edit post and reply to thread forms.
+#[derive(Default, Serialize)]
+pub struct FormContext {
+    /// Which editing mode is to be used by the template?
+    pub mode: EditingMode,
+
+    /// Potential alerts to display to the user (e.g. input validation
+    /// results)
+    pub alerts: Vec<&'static str>,
+
+    /// Either the title to be used in the subject field or the title
+    /// of the thread the user is responding to.
+    pub title: Option<String>,
+
+    /// Body of the post being edited, if present.
+    pub post: Option<String>,
+
+    /// ID of the thread being replied to or the post being edited.
+    pub id: Option<i32>,
+}
+
 /// Message used to render new thread page.
 ///
 /// It can optionally contain a vector of warnings to display to the
@@ -167,7 +202,7 @@ impl Handler<ThreadPage> for Renderer {
 pub struct NewThreadPage {
     pub alerts: Vec<&'static str>,
     pub title: Option<String>,
-    pub body: Option<String>,
+    pub post: Option<String>,
 }
 
 impl Message for NewThreadPage {
@@ -178,11 +213,13 @@ impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: NewThreadPage, _: &mut Self::Context) -> Self::Result {
-        let mut ctx = Context::new();
-        ctx.add("alerts", &msg.alerts);
-        ctx.add("title", &msg.title.map(|s| escape_html(&s)));
-        ctx.add("body", &msg.body.map(|s| escape_html(&s)));
-        Ok(self.tera.render("new-thread.html", &ctx)?)
+        let ctx: FormContext = FormContext {
+            alerts: msg.alerts,
+            title: msg.title,
+            post: msg.post,
+            ..Default::default()
+        };
+        Ok(self.tera.render("post.html", &ctx)?)
     }
 }
 

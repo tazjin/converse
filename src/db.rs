@@ -80,7 +80,7 @@ impl Handler<GetThread> for DbExecutor {
 /// Message used to create a new thread
 pub struct CreateThread {
     pub new_thread: NewThread,
-    pub body: String,
+    pub post: String,
 }
 
 impl Message for CreateThread {
@@ -105,7 +105,7 @@ impl Handler<CreateThread> for DbExecutor {
             // ... then create the first post in the thread.
             let new_post = NewPost {
                 thread_id: thread.id,
-                body: msg.body,
+                body: msg.post,
                 author_name: msg.new_thread.author_name.clone(),
                 author_email: msg.new_thread.author_email.clone(),
             };

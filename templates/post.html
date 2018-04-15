@@ -1,0 +1,103 @@
+<!-- {#
+  This template is shared by the new thread, reply and post-editing pages.
+
+  The main display differences between the different editing styles are the
+  headline of the page ("Submit new thread", "Reply to thread", "Edit post")
+  and whether or not the subject line field is displayed in the input form.
+
+  Every one of these pages can have a variable length list of alerts submitted
+  into the template, which will be rendered as Boostrap alert boxes above the
+  user input form.
+#} -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Converse Index</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-light bg-light justify-content-between mb-3">
+        <a class="navbar-brand" href="/">
+          {% if mode == "NewThread" %}
+          <h2>Converse: Submit new thread</h2>
+          {% elif mode == "PostReply" %}
+          <h2>Converse: Reply to thread</h2>
+          {% elif mode == "EditPost" %}
+          <h2>Converse: Edit post</h2>
+          {% endif %}
+        </a>
+        <form class="form-inline">
+          <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
+        </form>
+      </nav>
+    </header>
+    <div class="container border rounded">
+      <div class="d-flex flex-column mt-3 border-bottom">
+        {%- for alert in alerts %}
+        <div class="alert alert-warning m-3"><strong>{{ alert }}</strong></div>
+        {% endfor -%}
+
+        {%- if mode == "NewThread" %}
+        <h5>Create a new thread</h5>
+        {% elif mode == "PostReply" %}
+        <h5>Respond to thread '{{ title }}'</h5>
+        {% elif mode == "EditPost" %}
+        <h5>Edit your post</h5>
+        {% endif -%}
+      </div>
+      <div class="d-flex flex-column mt-3">
+        {% if mode == "NewThread" %}
+        <form action="/thread/submit" method="post">
+        {% elif mode == "PostReply" %}
+        <form action="/thread/reply" method="post">
+        {% elif mode == "EditPost" %}
+        <form action="/post/edit" method="post">
+        {% endif %}
+          {% if mode == "PostReply" %}
+          <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
+          {% elif mode == "EditPost" %}
+          <input type="hidden" id="thread_id" name="post_id" value="{{ id }}">
+          {% endif %}
+
+          {% if mode == "NewThread" %}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="title-text">Title:</span>
+            </div>
+            <input type="text" class="form-control" id="title" name="title" aria-label="thread title" {% if title %}value="{{ title }}"{% endif %}>
+          </div>
+          {% endif %}
+
+          <div class="d-flex flex-row">
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="post-text">Post:</span>
+              </div>
+              <textarea class="form-control" id="post" name="post" rows="15" aria-label="post content">{% if body %}{{ body }}{% endif %}</textarea>
+            </div>
+            <div class="d-flex flex-column flex-wrap-reverse border rounded">
+              <p class="m-2 pb-2 border-bottom border-dark">
+                Remember that you can use <a href="https://daringfireball.net/projects/markdown/basics"><strong>Markdown</strong></a> when
+                writing your posts:
+              </p>
+              <p class="ml-4 m-2"><i>*italic text*</i></p>
+              <p class="ml-4 m-2"><strong>**bold text**</strong></p>
+              <p class="ml-4 m-2"><s>~strikethrough text~</s></p>
+              <p class="ml-4 m-2"><code>[link text](https://some.link.com/)</code></p>
+              <p class="ml-4 m-2"><code>![image text](https://foo.com/thing.jpg)</code></p>
+              <p class="ml-4 m-2">Use <code>*</code> or <code>-</code> to enumerate lists.</p>
+              <p class="ml-4 m-2">See Markdown documentation for more information!</p>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-3 mb-3" type="submit">Post!</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
