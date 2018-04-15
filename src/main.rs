@@ -21,9 +21,6 @@ extern crate diesel;
 extern crate log;
 
 #[macro_use]
-extern crate tera;
-
-#[macro_use]
 extern crate serde_derive;
 
 #[macro_use]
@@ -42,6 +39,7 @@ extern crate rand;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
+extern crate tera;
 extern crate tokio;
 extern crate tokio_timer;
 extern crate url;
@@ -75,8 +73,9 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use handlers::*;
 use oidc::OidcExecutor;
 use rand::{OsRng, Rng};
-use std::env;
 use render::Renderer;
+use std::env;
+use tera::Tera;
 
 fn config(name: &str) -> String {
     env::var(name).expect(&format!("{} must be set", name))
@@ -128,9 +127,18 @@ fn start_oidc_executor(base_url: &str) -> Addr<Syn, OidcExecutor> {
 
 fn start_renderer() -> Addr<Syn, Renderer> {
     info!("Compiling templates ...");
-    let template_path = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*");
-    let mut tera = compile_templates!(template_path);
-    tera.autoescape_on(vec![]);
+    let mut tera: Tera = Default::default();
+
+    // Include template strings into the binary instead of being
+    // location-dependent.
+    // Drawback is that template changes require recompilation ...
+    tera.add_raw_templates(vec![
+        ("index.html", include_str!("../templates/index.html")),
+        ("post.html", include_str!("../templates/post.html")),
+        ("search.html", include_str!("../templates/search.html")),
+        ("thread.html", include_str!("../templates/thread.html")),
+    ]).expect("Could not compile templates");
+
     let comrak = comrak::ComrakOptions{
         github_pre_lang: true,
         ext_strikethrough: true,
