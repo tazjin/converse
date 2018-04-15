@@ -224,6 +224,34 @@ pub fn edit_form(state: State<AppState>,
         .responder()
 }
 
+/// This handler "executes" an edit to a post if the current user owns
+/// the edited post.
+pub fn edit_post(state: State<AppState>,
+                 mut req: HttpRequest<AppState>,
+                 update: Form<UpdatePost>) -> ConverseResponse {
+    let author: Option<Author> = req.session().get(AUTHOR)
+        .unwrap_or_else(|_| None);
+
+    state.db.send(GetPost { id: update.post_id })
+        .flatten()
+        .from_err()
+        .and_then(move |post| {
+            if let Some(author) = author {
+                if author.email.eq(&post.author_email) {
+                    return Ok(());
+                }
+            }
+            Err(ConverseError::PostEditForbidden { id: post.id })
+        })
+        .and_then(move |_| state.db.send(update.0).from_err())
+        .flatten()
+        .map(|updated| HttpResponse::SeeOther()
+             .header("Location", format!("/thread/{}#post-{}",
+                                         updated.thread_id, updated.id))
+             .finish())
+        .responder()
+}
+
 /// This handler executes a full-text search on the forum database and
 /// displays the results to the user.
 pub fn search_forum(state: State<AppState>,

@@ -182,6 +182,7 @@ fn start_http_server(base_url: String,
             .resource("/thread/reply", |r| r.method(Method::POST).with3(reply_thread))
             .resource("/thread/{id}", |r| r.method(Method::GET).with3(forum_thread))
             .resource("/post/{id}/edit", |r| r.method(Method::GET).with3(edit_form))
+            .resource("/post/edit", |r| r.method(Method::POST).with3(edit_post))
             .resource("/search", |r| r.method(Method::GET).with2(search_forum))
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
             .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback));

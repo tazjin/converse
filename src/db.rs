@@ -90,8 +90,8 @@ impl Handler<GetPost> for DbExecutor {
 /// Message used to update the content of a post.
 #[derive(Deserialize)]
 pub struct UpdatePost {
-    post_id: i32,
-    post: String,
+    pub post_id: i32,
+    pub post: String,
 }
 
 message!(UpdatePost, Result<Post>);
