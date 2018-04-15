@@ -109,13 +109,19 @@ const NEW_THREAD_LENGTH_ERR: &'static str = "Title and body can not be empty!";
 pub fn submit_thread(state: State<AppState>,
                      input: Form<NewThreadForm>,
                      mut req: HttpRequest<AppState>) -> ConverseResponse {
+    // Trim whitespace out of inputs:
+    let input = NewThreadForm {
+        title: input.title.trim().into(),
+        body: input.body.trim().into(),
+    };
+
     // Perform simple validation and abort here if it fails:
-    if input.0.title.is_empty() || input.0.body.is_empty() {
+    if input.title.is_empty() || input.body.is_empty() {
         return state.renderer
             .send(NewThreadPage {
                 alerts: vec![NEW_THREAD_LENGTH_ERR],
-                title: Some(input.0.title),
-                body: Some(input.0.body),
+                title: Some(input.title),
+                body: Some(input.body),
             })
             .flatten()
             .map(|res| HttpResponse::Ok().content_type(HTML).body(res))
@@ -127,14 +133,14 @@ pub fn submit_thread(state: State<AppState>,
         .unwrap_or_else(anonymous);
 
     let new_thread = NewThread {
-        title: input.0.title,
+        title: input.title,
         author_name: author.name,
         author_email: author.email,
     };
 
     let msg = CreateThread {
         new_thread,
-        body: input.0.body,
+        body: input.body,
     };
 
     state.db.send(msg)
@@ -166,7 +172,7 @@ pub fn reply_thread(state: State<AppState>,
 
     let new_post = NewPost {
         thread_id: input.thread_id,
-        body: input.0.body,
+        body: input.body.trim().into(),
         author_name: author.name,
         author_email: author.email,
     };
