@@ -87,6 +87,29 @@ impl Handler<GetPost> for DbExecutor {
     }
 }
 
+/// Message used to update the content of a post.
+#[derive(Deserialize)]
+pub struct UpdatePost {
+    post_id: i32,
+    post: String,
+}
+
+message!(UpdatePost, Result<Post>);
+
+impl Handler<UpdatePost> for DbExecutor {
+    type Result = Result<Post>;
+
+    fn handle(&mut self, msg: UpdatePost, _: &mut Self::Context) -> Self::Result {
+        use schema::posts::dsl::*;
+        let conn = self.0.get()?;
+        let updated = diesel::update(posts.find(msg.post_id))
+            .set(body.eq(msg.post))
+            .get_result(&conn)?;
+
+        Ok(updated)
+    }
+}
+
 /// Message used to create a new thread
 pub struct CreateThread {
     pub new_thread: NewThread,
