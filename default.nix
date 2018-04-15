@@ -18,7 +18,7 @@ in with unstable; rustPlatform.buildRustPackage rec {
   src         = ./.;
   cargoSha256 = "0a0634v22wazmyym05x4ricqkxwn4r3spv6s2f3ilma65cy6qyrf";
 
-  buildInputs = [ openssl pkgconfig ];
+  buildInputs = [ openssl pkgconfig postgresql.lib ];
 
   inherit doCheck;
 
