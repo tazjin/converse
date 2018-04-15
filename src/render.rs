@@ -151,11 +151,7 @@ impl Handler<ThreadPage> for Renderer {
 
     fn handle(&mut self, msg: ThreadPage, _: &mut Self::Context) -> Self::Result {
         let renderable = prepare_thread(&self.comrak, msg);
-        let mut ctx = Context::new();
-        ctx.add("title", &renderable.title);
-        ctx.add("posts", &renderable.posts);
-        ctx.add("id", &renderable.id);
-        Ok(self.tera.render("thread.html", &ctx)?)
+        Ok(self.tera.render("thread.html", &renderable)?)
     }
 }
 
@@ -224,6 +220,7 @@ impl Handler<NewThreadPage> for Renderer {
 }
 
 /// Message used to render search results
+#[derive(Serialize)]
 pub struct SearchResultPage {
     pub query: String,
     pub results: Vec<SearchResult>,
@@ -237,9 +234,6 @@ impl Handler<SearchResultPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: SearchResultPage, _: &mut Self::Context) -> Self::Result {
-        let mut ctx = Context::new();
-        ctx.add("query", &msg.query);
-        ctx.add("results", &msg.results);
-        Ok(self.tera.render("search.html", &ctx)?)
+        Ok(self.tera.render("search.html", &msg)?)
     }
 }
