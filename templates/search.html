@@ -34,7 +34,7 @@
             {% for result in results -%}
             <a href="/thread/{{ result.thread_id }}#post-{{ result.post_id }}" class="list-group-item list-group-item-action flex-column align-items-start">
               <div class="d-flex w-100 justify-content-between">
-                <p class="mb-1">{{ result.headline }}</p>
+                <p class="mb-1">{{ result.headline | safe }}</p>
                 <small class="float-right text-muted"><i>(Posted in '{{ result.title }}' by {{ result.author }})</i></small>
               </div>
             </a>
