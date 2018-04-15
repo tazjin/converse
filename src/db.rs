@@ -71,6 +71,22 @@ impl Handler<GetThread> for DbExecutor {
     }
 }
 
+/// Message used to fetch a specific post.
+#[derive(Deserialize, Debug)]
+pub struct GetPost { pub id: i32 }
+
+message!(GetPost, Result<Post>);
+
+impl Handler<GetPost> for DbExecutor {
+    type Result = <GetPost as Message>::Result;
+
+    fn handle(&mut self, msg: GetPost, _: &mut Self::Context) -> Self::Result {
+        use schema::posts::dsl::*;
+        let conn = self.0.get()?;
+        Ok(posts.find(msg.id).first(&conn)?)
+    }
+}
+
 /// Message used to create a new thread
 pub struct CreateThread {
     pub new_thread: NewThread,
