@@ -61,7 +61,7 @@ impl Handler<GetThread> for DbExecutor {
     fn handle(&mut self, msg: GetThread, _: &mut Self::Context) -> Self::Result {
         use schema::threads::dsl::*;
         use schema::posts::dsl::id;
-        
+
         let conn = self.0.get()?;
         let thread_result: Thread = threads
             .find(msg.0).first(&conn)?;
