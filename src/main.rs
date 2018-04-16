@@ -146,6 +146,7 @@ fn start_renderer() -> Addr<Syn, Renderer> {
         ext_autolink: true,
         ext_tasklist: true,
         ext_footnotes: true,
+        ext_tagfilter: true,
         ..Default::default()
     };
 
