@@ -22,20 +22,20 @@
 
     <div class="container">
       <div class="list-group d-flex flex-column">
-        <div class="list-group-item d-flex">
+        <div class="list-group-item d-flex row">
           <h3>{{ title | safe }}</h3>
         </div>
 
         {% for post in posts -%}
-        <div id="post-{{ post.id}}" class="list-group-item d-flex flex-row">
-          <div class="d-flex flex-column pr-3 mr-1 border-right">
-            <img src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid" style="width: 80px;"/>
-            <strong>{{ post.author_name }}</strong>
+        <div id="post-{{ post.id}}" class="list-group-item d-flex row">
+          <div class="d-flex flex-column border-right col-2">
+            <img class="mx-auto" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid" style="width: 80px;"/>
+            <span class="mx-auto text-center"><strong>{{ post.author_name }}</strong></span>
           </div>
 
-          <div class="ml-2 align-self-stretch">{{ post.body | safe }}</div>
+          <div class="align-self-stretch col">{{ post.body | safe }}</div>
 
-          <div class="d-inline-flex flex-column align-items-end ml-auto">
+          <div class="d-inline-flex flex-column align-items-end ml-auto col-1">
             <a href="/thread/{{ id }}#post-{{ post.id }}" class="ml-auto">
               <small class="text-muted float-right">{{ post.posted }}</small>
             </a>
@@ -50,7 +50,7 @@
         </div>
         {%- endfor %}
 
-        <div class="list-group-item flex-column align-items-start">
+        <div class="list-group-item flex-column align-items-start row">
           <form id="reply-form" action="/thread/reply" method="post">
             <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
             <label for="body">You can use <strong>Markdown</strong>!</label>
