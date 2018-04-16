@@ -31,7 +31,10 @@
                 <h5 class="mb-1">{% if thread.sticky %}<span class="badge badge-light">Sticky</span> {% endif %}{{ thread.title | safe }}</h5>
                 <small class="{% if thread.sticky %}text-white{% else %}text-muted{% endif %}">{{ thread.posted }}</small>
               </div>
-              <p class="mb-1">Created by {{ thread.author_name }}</p>
+              <div class="d-flex justify-content-between">
+                <p class="mb-1">Created by {{ thread.author_name }}</p>
+                <small>Last post by {{ thread.post_author }}</small>
+              </div>
             </a>
             {%- endfor %}
           </div>

@@ -58,6 +58,7 @@ struct IndexThread {
     sticky: bool,
     posted: FormattedDate,
     author_name: String,
+    post_author: String,
 }
 
 impl Handler<IndexPage> for Renderer {
@@ -72,6 +73,7 @@ impl Handler<IndexPage> for Renderer {
                 sticky: thread.sticky,
                 posted: thread.posted.into(),
                 author_name: thread.thread_author,
+                post_author: thread.post_author,
             })
             .collect();
 
