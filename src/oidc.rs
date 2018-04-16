@@ -120,13 +120,15 @@ impl Handler<RetrieveToken> for OidcExecutor {
             ("redirect_uri", &self.redirect_uri),
         ];
 
-        let response: TokenResponse = client.post(&self.oidc_config.token_endpoint)
+        let mut response = client.post(&self.oidc_config.token_endpoint)
             .form(&params)
-            .send()?
-            .json()?;
+            .send()?;
+
+        debug!("Received token response: {:?}", response);
+        let token: TokenResponse = response.json()?;
 
         let user: Userinfo = client.get(&self.oidc_config.userinfo_endpoint)
-            .header(Authorization(Bearer { token: response.access_token }))
+            .header(Authorization(Bearer { token: token.access_token }))
             .send()?
             .json()?;
 
