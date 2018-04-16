@@ -27,7 +27,7 @@
         </div>
 
         {% for post in posts -%}
-        <div id="post-{{ post.id}}" class="list-group-item d-flex row">
+        <div id="post-{{ post.id}}" class="list-group-item d-flex row pl-0">
           <div class="d-flex flex-column border-right col-2">
             <img class="mx-auto" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" style="width: 80px;"/>
             <span class="mx-auto text-center"><strong>{{ post.author_name }}</strong></span>
