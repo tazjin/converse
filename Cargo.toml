@@ -2,6 +2,7 @@
 name = "converse"
 version = "0.1.0"
 authors = ["Vincent Ambo <mail@tazj.in>"]
+license = "AGPL-3.0-or-later"
 
 [dependencies]
 actix = "0.5"

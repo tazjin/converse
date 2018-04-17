@@ -25,7 +25,7 @@ in with unstable; rustPlatform.buildRustPackage rec {
   meta = with stdenv.lib; {
     description = "A simple forum software";
     homepage    = "https://github.com/tazjin/converse";
-    license     = licenses.gpl3;
+    license     = licenses.agpl3;
     maintainers = [ maintainers.tazjin ];
   };
 }
