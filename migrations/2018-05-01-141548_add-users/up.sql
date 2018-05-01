@@ -20,22 +20,22 @@ INSERT INTO users (id, email, name)
   WHERE author_email != 'anonymous@nothing.org'
   GROUP BY name, email;
 
--- Create the 'author' column in the relevant tables (initially
+-- Create the 'user_id' column in the relevant tables (initially
 -- without a not-null constraint) and populate it with the data
 -- selected above:
-ALTER TABLE posts ADD COLUMN author INTEGER REFERENCES users (id);
-UPDATE posts SET author = users.id
+ALTER TABLE posts ADD COLUMN user_id INTEGER REFERENCES users (id);
+UPDATE posts SET user_id = users.id
   FROM users
   WHERE users.email = posts.author_email;
 
-ALTER TABLE threads ADD COLUMN author INTEGER REFERENCES users (id);
-UPDATE threads SET author = users.id
+ALTER TABLE threads ADD COLUMN user_id INTEGER REFERENCES users (id);
+UPDATE threads SET user_id = users.id
   FROM users
   WHERE users.email = threads.author_email;
 
 -- Add the constraints:
-ALTER TABLE posts ALTER COLUMN author SET NOT NULL;
-ALTER TABLE threads ALTER COLUMN author SET NOT NULL;
+ALTER TABLE posts ALTER COLUMN user_id SET NOT NULL;
+ALTER TABLE threads ALTER COLUMN user_id SET NOT NULL;
 
 -- Update the index view:
 CREATE OR REPLACE VIEW thread_index AS
@@ -49,12 +49,12 @@ CREATE OR REPLACE VIEW thread_index AS
          p.posted AS posted
     FROM threads t
     JOIN (SELECT DISTINCT ON (thread_id)
-           id, thread_id, author, posted
+           id, thread_id, user_id, posted
           FROM posts
           ORDER BY thread_id, id DESC) AS p
     ON t.id = p.thread_id
-    JOIN users ta ON ta.id = t.author
-    JOIN users pa ON pa.id = p.author
+    JOIN users ta ON ta.id = t.user_id
+    JOIN users pa ON pa.id = p.user_id
     ORDER BY t.sticky DESC, p.id DESC;
 
 -- Update the search view:
@@ -71,8 +71,8 @@ CREATE MATERIALIZED VIEW search_index AS
          setweight(to_tsvector('simple', pa.name), 'C') AS document
     FROM posts p
     JOIN threads t ON t.id = p.thread_id
-    JOIN users ta ON ta.id = t.author
-    JOIN users pa ON pa.id = p.author;
+    JOIN users ta ON ta.id = t.user_id
+    JOIN users pa ON pa.id = p.user_id;
 
 CREATE INDEX idx_fts_search ON search_index USING gin(document);
 

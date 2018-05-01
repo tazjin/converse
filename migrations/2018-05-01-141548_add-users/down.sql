@@ -8,12 +8,12 @@ ALTER TABLE posts ADD COLUMN author_email VARCHAR;
 UPDATE threads SET author_name = users.name,
                    author_email = users.email
   FROM users
-  WHERE threads.author = users.id;
+  WHERE threads.user_id = users.id;
 
 UPDATE posts SET author_name = users.name,
                  author_email = users.email
   FROM users
-  WHERE posts.author = users.id;
+  WHERE posts.user_id = users.id;
 
 -- add the constraints back:
 ALTER TABLE threads ALTER COLUMN author_name SET NOT NULL;
@@ -58,6 +58,6 @@ CREATE MATERIALIZED VIEW search_index AS
 CREATE INDEX idx_fts_search ON search_index USING gin(document);
 
 -- and drop the users table and columns:
-ALTER TABLE posts DROP COLUMN author;
-ALTER TABLE threads DROP COLUMN author;
+ALTER TABLE posts DROP COLUMN user_id;
+ALTER TABLE threads DROP COLUMN user_id;
 DROP TABLE users;
