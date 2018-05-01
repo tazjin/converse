@@ -2336,11 +2336,11 @@ rec {
     unicode_width_0_1_4.default = true;
     vec_map_0_8_0.default = true;
   }) [ atty_0_2_10_features bitflags_1_0_3_features strsim_0_7_0_features textwrap_0_9_0_features unicode_width_0_1_4_features vec_map_0_8_0_features ansi_term_0_11_0_features ];
-  comrak_0_2_9 = { features?(comrak_0_2_9_features {}) }: comrak_0_2_9_ {
+  comrak_0_2_9 = { features?(comrak_0_2_9_features {}) }: (comrak_0_2_9_ {
     dependencies = mapFeatures features ([ entities_1_0_1 lazy_static_1_0_0 pest_1_0_6 pest_derive_1_0_7 regex_0_2_11 twoway_0_1_8 typed_arena_1_3_0 unicode_categories_0_1_1 ]
       ++ (if features.comrak_0_2_9.clap or false then [ clap_2_31_2 ] else []));
     features = mkFeatures (features.comrak_0_2_9 or {});
-  };
+  }).overrideAttrs (oldAttrs: rec { CARGO_PKG_DESCRIPTION = "dummy"; });
   comrak_0_2_9_features = f: updateFeatures f (rec {
     clap_2_31_2.default = true;
     comrak_0_2_9.clap =
