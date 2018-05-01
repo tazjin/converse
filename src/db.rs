@@ -55,22 +55,22 @@ impl Handler<ListThreads> for DbExecutor {
 /// Message used to fetch a specific thread. Returns the thread and
 /// its posts.
 pub struct GetThread(pub i32);
-message!(GetThread, Result<(Thread, Vec<Post>)>);
+message!(GetThread, Result<(Thread, Vec<SimplePost>)>);
 
 impl Handler<GetThread> for DbExecutor {
     type Result = <GetThread as Message>::Result;
 
     fn handle(&mut self, msg: GetThread, _: &mut Self::Context) -> Self::Result {
         use schema::threads::dsl::*;
-        use schema::posts::dsl::id;
+        use schema::simple_posts::dsl::id;
 
         let conn = self.0.get()?;
         let thread_result: Thread = threads
             .find(msg.0).first(&conn)?;
 
-        let post_list = Post::belonging_to(&thread_result)
+        let post_list = SimplePost::belonging_to(&thread_result)
             .order_by(id.asc())
-            .load::<Post>(&conn)?;
+            .load::<SimplePost>(&conn)?;
 
         Ok((thread_result, post_list))
     }
@@ -80,15 +80,15 @@ impl Handler<GetThread> for DbExecutor {
 #[derive(Deserialize, Debug)]
 pub struct GetPost { pub id: i32 }
 
-message!(GetPost, Result<Post>);
+message!(GetPost, Result<SimplePost>);
 
 impl Handler<GetPost> for DbExecutor {
     type Result = <GetPost as Message>::Result;
 
     fn handle(&mut self, msg: GetPost, _: &mut Self::Context) -> Self::Result {
-        use schema::posts::dsl::*;
+        use schema::simple_posts::dsl::*;
         let conn = self.0.get()?;
-        Ok(posts.find(msg.id).first(&conn)?)
+        Ok(simple_posts.find(msg.id).first(&conn)?)
     }
 }
 
@@ -141,8 +141,7 @@ impl Handler<CreateThread> for DbExecutor {
             let new_post = NewPost {
                 thread_id: thread.id,
                 body: msg.post,
-                author_name: msg.new_thread.author_name.clone(),
-                author_email: msg.new_thread.author_email.clone(),
+                user_id: msg.new_thread.user_id,
             };
 
             diesel::insert_into(posts::table)
