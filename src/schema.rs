@@ -22,7 +22,7 @@ table! {
         thread_id -> Int4,
         body -> Text,
         posted -> Timestamptz,
-        author -> Int4,
+        user_id -> Int4,
     }
 }
 
@@ -32,7 +32,7 @@ table! {
         title -> Varchar,
         posted -> Timestamptz,
         sticky -> Bool,
-        author -> Int4,
+        user_id -> Int4,
     }
 }
 
@@ -60,8 +60,8 @@ table! {
 }
 
 joinable!(posts -> threads (thread_id));
-joinable!(posts -> users (author));
-joinable!(threads -> users (author));
+joinable!(posts -> users (user_id));
+joinable!(threads -> users (user_id));
 
 allow_tables_to_appear_in_same_query!(
     posts,
