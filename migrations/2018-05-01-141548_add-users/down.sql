@@ -55,6 +55,8 @@ CREATE MATERIALIZED VIEW search_index AS
     JOIN threads t
     ON t.id = p.thread_id;
 
+CREATE INDEX idx_fts_search ON search_index USING gin(document);
+
 -- and drop the users table and columns:
 ALTER TABLE posts DROP COLUMN author;
 ALTER TABLE threads DROP COLUMN author;
