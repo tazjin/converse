@@ -68,7 +68,8 @@ pub mod schema;
 use actix::prelude::*;
 use actix_web::*;
 use actix_web::http::Method;
-use actix_web::middleware::{Logger, SessionStorage, CookieSessionBackend};
+use actix_web::middleware::Logger;
+use actix_web::middleware::identity::{IdentityService, CookieIdentityPolicy};
 use db::*;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -180,13 +181,16 @@ fn start_http_server(base_url: String,
             renderer: renderer_addr.clone(),
         };
 
-        let sessions = SessionStorage::new(
-            CookieSessionBackend::signed(&key)
-                .secure(base_url.starts_with("https")));
+        let identity = IdentityService::new(
+            CookieIdentityPolicy::new(&key)
+                .name("converse_auth")
+                .path("/")
+                .secure(base_url.starts_with("https"))
+        );
 
         let app = App::with_state(state)
             .middleware(Logger::default())
-            .middleware(sessions)
+            .middleware(identity)
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
