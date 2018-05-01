@@ -17,22 +17,58 @@
 // <http://www.gnu.org/licenses/>.
 
 use chrono::prelude::{DateTime, Utc};
-use schema::{threads, posts};
+use schema::{users, threads, posts, simple_posts};
 use diesel::sql_types::{Text, Integer};
 
+/// Represents a single user in the Converse database. Converse does
+/// not handle logins itself, but rather looks them up based on the
+/// email address received from an OIDC provider.
 #[derive(Identifiable, Queryable, Serialize)]
+pub struct User {
+    pub id: i32,
+    pub name: String,
+    pub email: String,
+    pub admin: bool,
+}
+
+#[derive(Identifiable, Queryable, Serialize, Associations)]
+#[belongs_to(User)]
 pub struct Thread {
     pub id: i32,
     pub title: String,
     pub posted: DateTime<Utc>,
-    pub author_name: String,
-    pub author_email: String,
     pub sticky: bool,
+    pub user_id: i32,
 }
 
-/// This struct is used as the query type for the thread index view,
-/// which lists the index of threads ordered by the last post in each
-/// thread.
+#[derive(Identifiable, Queryable, Serialize, Associations)]
+#[belongs_to(Thread)]
+#[belongs_to(User)]
+pub struct Post {
+    pub id: i32,
+    pub thread_id: i32,
+    pub body: String,
+    pub posted: DateTime<Utc>,
+    pub user_id: i32,
+}
+
+/// This struct is used as the query result type for the simplified
+/// post view, which already joins user information in the database.
+#[derive(Identifiable, Queryable, Serialize, Associations)]
+#[belongs_to(Thread)]
+pub struct SimplePost {
+    pub id: i32,
+    pub thread_id: i32,
+    pub body: String,
+    pub posted: DateTime<Utc>,
+    pub user_id: i32,
+    pub author_name: String,
+    pub author_email: String,
+}
+
+/// This struct is used as the query result type for the thread index
+/// view, which lists the index of threads ordered by the last post in
+/// each thread.
 #[derive(Queryable, Serialize)]
 pub struct ThreadIndex {
     pub thread_id: i32,
@@ -45,23 +81,11 @@ pub struct ThreadIndex {
     pub posted: DateTime<Utc>,
 }
 
-#[derive(Identifiable, Queryable, Serialize, Associations)]
-#[belongs_to(Thread)]
-pub struct Post {
-    pub id: i32,
-    pub thread_id: i32,
-    pub body: String,
-    pub posted: DateTime<Utc>,
-    pub author_name: String,
-    pub author_email: String,
-}
-
 #[derive(Deserialize, Insertable)]
 #[table_name="threads"]
 pub struct NewThread {
     pub title: String,
-    pub author_name: String,
-    pub author_email: String,
+    pub user_id: i32,
 }
 
 #[derive(Deserialize, Insertable)]
@@ -69,8 +93,7 @@ pub struct NewThread {
 pub struct NewPost {
     pub thread_id: i32,
     pub body: String,
-    pub author_name: String,
-    pub author_email: String,
+    pub user_id: i32,
 }
 
 /// This struct models the response of a full-text search query. It

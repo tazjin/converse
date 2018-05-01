@@ -89,7 +89,7 @@ impl Handler<IndexPage> for Renderer {
 pub struct ThreadPage {
     pub current_user: Option<String>,
     pub thread: Thread,
-    pub posts: Vec<Post>,
+    pub posts: Vec<SimplePost>,
 }
 message!(ThreadPage, Result<String>);
 

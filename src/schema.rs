@@ -47,7 +47,20 @@ table! {
 
 // Note: Manually inserted as print-schema does not add views.
 table! {
-    thread_index (thread_id){
+    simple_posts (id) {
+        id -> Int4,
+        thread_id -> Int4,
+        body -> Text,
+        posted -> Timestamptz,
+        user_id -> Int4,
+        author_name -> Text,
+        author_email -> Text,
+    }
+}
+
+// Note: Manually inserted as print-schema does not add views.
+table! {
+    thread_index (thread_id) {
         thread_id -> Int4,
         title -> Text,
         thread_author -> Text,
@@ -62,9 +75,11 @@ table! {
 joinable!(posts -> threads (thread_id));
 joinable!(posts -> users (user_id));
 joinable!(threads -> users (user_id));
+joinable!(simple_posts -> threads (thread_id));
 
 allow_tables_to_appear_in_same_query!(
     posts,
     threads,
     users,
+    simple_posts,
 );
