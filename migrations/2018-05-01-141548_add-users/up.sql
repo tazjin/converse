@@ -8,11 +8,17 @@ CREATE TABLE users (
   admin BOOLEAN NOT NULL DEFAULT false
 );
 
-INSERT INTO users (email, name)
-SELECT author_email AS email,
-       author_name AS name
-FROM posts
-GROUP BY name, email;
+-- Insert the 'anonymous' user explicitly:
+INSERT INTO users (name, email)
+  VALUES ('Anonymous', 'anonymous@nothing.org');
+
+INSERT INTO users (id, email, name)
+  SELECT nextval('users_id_seq'),
+         author_email AS email,
+         author_name AS name
+  FROM posts
+  WHERE author_email != 'anonymous@nothing.org'
+  GROUP BY name, email;
 
 -- Create the 'author' column in the relevant tables (initially
 -- without a not-null constraint) and populate it with the data
