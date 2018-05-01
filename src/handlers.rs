@@ -26,7 +26,8 @@
 use actix::prelude::*;
 use actix_web;
 use actix_web::*;
-use actix_web::middleware::{Started, Middleware, RequestSession};
+use actix_web::middleware::identity::RequestIdentity;
+use actix_web::middleware::{Started, Middleware};
 use db::*;
 use errors::ConverseError;
 use futures::Future;
@@ -37,6 +38,8 @@ use render::*;
 type ConverseResponse = Box<Future<Item=HttpResponse, Error=ConverseError>>;
 
 const HTML: &'static str = "text/html";
+const ANONYMOUS: i32 = 1;
+const NEW_THREAD_LENGTH_ERR: &'static str = "Title and body can not be empty!";
 
 /// Represents the state carried by the web server actors.
 pub struct AppState {
@@ -61,14 +64,25 @@ pub fn forum_index(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
+/// Returns the ID of the currently logged in user. If there is no ID
+/// present, the ID of the anonymous user will be returned.
+pub fn get_user_id(req: &HttpRequest<AppState>) -> i32 {
+    if let Some(id) = req.identity() {
+        // If this .expect() call is triggered, someone is likely
+        // attempting to mess with their cookies. These requests can
+        // be allowed to fail without further ado.
+        id.parse().expect("Session cookie contained invalid data!")
+    } else {
+        ANONYMOUS
+    }
+}
+
 /// This handler retrieves and displays a single forum thread.
 pub fn forum_thread(state: State<AppState>,
-                    mut req: HttpRequest<AppState>,
+                    req: HttpRequest<AppState>,
                     thread_id: Path<i32>) -> ConverseResponse {
     let id = thread_id.into_inner();
-    let user = req.session().get(AUTHOR)
-        .unwrap_or_else(|_| None)
-        .map(|a: Author| a.email);
+    let user = get_user_id(&req);
 
     state.db.send(GetThread(id))
         .flatten()
@@ -89,28 +103,17 @@ pub fn new_thread(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
-/// This function provides an anonymous "default" author if logins are
-/// not required.
-fn anonymous() -> Author {
-    Author {
-        name: "Anonymous".into(),
-        email: "anonymous@nothing.org".into(),
-    }
-}
-
 #[derive(Deserialize)]
 pub struct NewThreadForm {
     pub title: String,
     pub post: String,
 }
 
-const NEW_THREAD_LENGTH_ERR: &'static str = "Title and body can not be empty!";
-
 /// This handler receives a "New thread"-form and redirects the user
 /// to the new thread after creation.
 pub fn submit_thread(state: State<AppState>,
                      input: Form<NewThreadForm>,
-                     mut req: HttpRequest<AppState>) -> ConverseResponse {
+                     req: HttpRequest<AppState>) -> ConverseResponse {
     // Trim whitespace out of inputs:
     let input = NewThreadForm {
         title: input.title.trim().into(),
@@ -130,14 +133,11 @@ pub fn submit_thread(state: State<AppState>,
             .responder();
     }
 
-    let author: Author = req.session().get(AUTHOR)
-        .unwrap_or_else(|_| Some(anonymous()))
-        .unwrap_or_else(anonymous);
+    let user_id = get_user_id(&req);
 
     let new_thread = NewThread {
+        user_id,
         title: input.title,
-        author_name: author.name,
-        author_email: author.email,
     };
 
     let msg = CreateThread {
@@ -167,16 +167,13 @@ pub struct NewPostForm {
 /// new post after creation.
 pub fn reply_thread(state: State<AppState>,
                     input: Form<NewPostForm>,
-                    mut req: HttpRequest<AppState>) -> ConverseResponse {
-    let author: Author = req.session().get(AUTHOR)
-        .unwrap_or_else(|_| Some(anonymous()))
-        .unwrap_or_else(anonymous);
+                    req: HttpRequest<AppState>) -> ConverseResponse {
+    let user_id = get_user_id(&req);
 
     let new_post = NewPost {
+        user_id,
         thread_id: input.thread_id,
         body: input.post.trim().into(),
-        author_name: author.name,
-        author_email: author.email,
     };
 
     state.db.send(CreatePost(new_post))
@@ -196,19 +193,16 @@ pub fn reply_thread(state: State<AppState>,
 /// they are currently ungracefully redirected back to the post
 /// itself.
 pub fn edit_form(state: State<AppState>,
-                 mut req: HttpRequest<AppState>,
+                 req: HttpRequest<AppState>,
                  query: Path<GetPost>) -> ConverseResponse {
-    let author: Option<Author> = req.session().get(AUTHOR)
-        .unwrap_or_else(|_| None);
+    let user_id = get_user_id(&req);
 
     state.db.send(query.into_inner())
         .flatten()
         .from_err()
         .and_then(move |post| {
-            if let Some(author) = author {
-                if author.email.eq(&post.author_email) {
-                    return Ok(post);
-                }
+            if user_id != 1 && post.user_id == user_id {
+                return Ok(post);
             }
 
             Err(ConverseError::PostEditForbidden { id: post.id })
@@ -229,21 +223,19 @@ pub fn edit_form(state: State<AppState>,
 /// This handler "executes" an edit to a post if the current user owns
 /// the edited post.
 pub fn edit_post(state: State<AppState>,
-                 mut req: HttpRequest<AppState>,
+                 req: HttpRequest<AppState>,
                  update: Form<UpdatePost>) -> ConverseResponse {
-    let author: Option<Author> = req.session().get(AUTHOR)
-        .unwrap_or_else(|_| None);
+    let user_id = get_user_id(&req);
 
     state.db.send(GetPost { id: update.post_id })
         .flatten()
         .from_err()
         .and_then(move |post| {
-            if let Some(author) = author {
-                if author.email.eq(&post.author_email) {
-                    return Ok(());
-                }
+            if user_id != 1 && post.user_id == user_id {
+                 Ok(())
+            } else {
+                Err(ConverseError::PostEditForbidden { id: post.id })
             }
-            Err(ConverseError::PostEditForbidden { id: post.id })
         })
         .and_then(move |_| state.db.send(update.0).from_err())
         .flatten()
@@ -280,17 +272,24 @@ pub fn login(state: State<AppState>) -> ConverseResponse {
         .responder()
 }
 
-const AUTHOR: &'static str = "author";
-
+/// This handler handles an OIDC callback (i.e. completed login).
+///
+/// Upon receiving the callback, a token is retrieved from the OIDC
+/// provider and a user lookup is performed. If a user with a matching
+/// email-address is found in the database, it is logged in -
+/// otherwise a new user is created.
 pub fn callback(state: State<AppState>,
                 data: Form<CodeResponse>,
                 mut req: HttpRequest<AppState>) -> ConverseResponse {
-    state.oidc.send(RetrieveToken(data.0))
-        .from_err()
-        .and_then(move |result| {
-            let author = result?;
-            info!("Setting cookie for {} after callback", author.name);
-            req.session().set(AUTHOR, author)?;
+    state.oidc.send(RetrieveToken(data.0)).flatten()
+        .map(|author| LookupOrCreateUser {
+            email: author.email,
+            name: author.name,
+        })
+        .and_then(move |msg| state.db.send(msg).from_err()).flatten()
+        .and_then(move |user| {
+            info!("Completed login for user {} ({})", user.email, user.id);
+            req.remember(user.id.to_string());
             Ok(HttpResponse::SeeOther()
                .header("Location", "/")
                .finish())})
@@ -303,10 +302,10 @@ pub struct RequireLogin;
 
 impl <S> Middleware<S> for RequireLogin {
     fn start(&self, req: &mut HttpRequest<S>) -> actix_web::Result<Started> {
-        let has_author = req.session().get::<Author>(AUTHOR)?.is_some();
+        let logged_in = req.identity().is_some();
         let is_oidc_req = req.path().starts_with("/oidc");
 
-        if !is_oidc_req && !has_author {
+        if !is_oidc_req && !logged_in {
             Ok(Started::Response(
                 HttpResponse::SeeOther()
                     .header("Location", "/oidc/login")
