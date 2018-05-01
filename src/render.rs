@@ -87,7 +87,7 @@ impl Handler<IndexPage> for Renderer {
 
 /// Message used to render a thread.
 pub struct ThreadPage {
-    pub current_user: Option<String>,
+    pub current_user: i32,
     pub thread: Thread,
     pub posts: Vec<SimplePost>,
 }
@@ -122,9 +122,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
     let user = page.current_user;
 
     let posts = page.posts.into_iter().map(|post| {
-        let editable = user.clone()
-            .map(|c| post.author_email.eq(&c))
-            .unwrap_or_else(|| false);
+        let editable = user != 1 && post.user_id == user;
 
         RenderablePost {
             id: post.id,
