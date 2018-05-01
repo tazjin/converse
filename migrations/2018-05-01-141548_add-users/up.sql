@@ -68,6 +68,8 @@ CREATE MATERIALIZED VIEW search_index AS
     JOIN users ta ON ta.id = t.author
     JOIN users pa ON pa.id = p.author;
 
+CREATE INDEX idx_fts_search ON search_index USING gin(document);
+
 -- And drop the old fields:
 ALTER TABLE posts DROP COLUMN author_name;
 ALTER TABLE posts DROP COLUMN author_email;
