@@ -52,6 +52,49 @@ impl Handler<ListThreads> for DbExecutor {
     }
 }
 
+/// Message used to look up a user based on their email-address. If
+/// the user does not exist, it is created.
+pub struct LookupOrCreateUser {
+    pub email: String,
+    pub name: String,
+}
+
+message!(LookupOrCreateUser, Result<User>);
+
+impl Handler<LookupOrCreateUser> for DbExecutor {
+    type Result = <LookupOrCreateUser as Message>::Result;
+
+    fn handle(&mut self,
+              msg: LookupOrCreateUser,
+              _: &mut Self::Context) -> Self::Result {
+        use schema::users;
+        use schema::users::dsl::*;
+
+        let conn = self.0.get()?;
+
+        let opt_user = users
+            .filter(email.eq(&msg.email))
+            .first(&conn).optional()?;
+
+        if let Some(user) = opt_user {
+            Ok(user)
+        } else {
+            let new_user = NewUser {
+                email: msg.email,
+                name: msg.name,
+            };
+
+            let user: User = diesel::insert_into(users::table)
+                .values(&new_user)
+                .get_result(&conn)?;
+
+            info!("Created new user {} with ID {}", new_user.email, user.id);
+
+            Ok(user)
+        }
+    }
+}
+
 /// Message used to fetch a specific thread. Returns the thread and
 /// its posts.
 pub struct GetThread(pub i32);

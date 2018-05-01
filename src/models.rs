@@ -89,6 +89,13 @@ pub struct NewThread {
 }
 
 #[derive(Deserialize, Insertable)]
+#[table_name="users"]
+pub struct NewUser {
+    pub email: String,
+    pub name: String,
+}
+
+#[derive(Deserialize, Insertable)]
 #[table_name="posts"]
 pub struct NewPost {
     pub thread_id: i32,
