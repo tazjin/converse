@@ -78,6 +78,7 @@ use oidc::OidcExecutor;
 use rand::{OsRng, Rng};
 use render::Renderer;
 use std::env;
+use std::path::PathBuf;
 use tera::Tera;
 
 fn config(name: &str) -> String {
@@ -173,6 +174,15 @@ fn start_http_server(base_url: String,
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
     let key = gen_session_key();
     let require_login = config_default("REQUIRE_LOGIN", "true".into()) == "true";
+    let static_dir = env::var("CONVERSE_STATIC_DIR")
+        .map(PathBuf::from)
+        .or_else(|_| env::current_dir().map(|mut p| {
+            p.push("static");
+            p
+        }))
+        .expect("Could not determine static file directory");
+
+    info!("Serving static files from {:?}", static_dir);
 
     server::new(move || {
         let state = AppState {
@@ -191,6 +201,7 @@ fn start_http_server(base_url: String,
         let app = App::with_state(state)
             .middleware(Logger::default())
             .middleware(identity)
+            .handler("/static", fs::StaticFiles::new(static_dir.clone()))
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
