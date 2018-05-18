@@ -36,6 +36,7 @@ extern crate env_logger;
 extern crate futures;
 extern crate hyper;
 extern crate md5;
+extern crate mime_guess;
 extern crate r2d2;
 extern crate rand;
 extern crate reqwest;
@@ -78,7 +79,6 @@ use oidc::OidcExecutor;
 use rand::{OsRng, Rng};
 use render::Renderer;
 use std::env;
-use std::path::PathBuf;
 use tera::Tera;
 
 fn config(name: &str) -> String {
@@ -174,15 +174,6 @@ fn start_http_server(base_url: String,
     let bind_host = config_default("CONVERSE_BIND_HOST", "127.0.0.1:4567");
     let key = gen_session_key();
     let require_login = config_default("REQUIRE_LOGIN", "true".into()) == "true";
-    let static_dir = env::var("CONVERSE_STATIC_DIR")
-        .map(PathBuf::from)
-        .or_else(|_| env::current_dir().map(|mut p| {
-            p.push("static");
-            p
-        }))
-        .expect("Could not determine static file directory");
-
-    info!("Serving static files from {:?}", static_dir);
 
     server::new(move || {
         let state = AppState {
@@ -201,7 +192,6 @@ fn start_http_server(base_url: String,
         let app = App::with_state(state)
             .middleware(Logger::default())
             .middleware(identity)
-            .handler("/static", fs::StaticFiles::new(static_dir.clone()))
             .resource("/", |r| r.method(Method::GET).with(forum_index))
             .resource("/thread/new", |r| r.method(Method::GET).with(new_thread))
             .resource("/thread/submit", |r| r.method(Method::POST).with3(submit_thread))
@@ -211,7 +201,9 @@ fn start_http_server(base_url: String,
             .resource("/post/edit", |r| r.method(Method::POST).with3(edit_post))
             .resource("/search", |r| r.method(Method::GET).with2(search_forum))
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
-            .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback));
+            .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback))
+            .static_file("/static/highlight.css", include_bytes!("../static/highlight.css"))
+            .static_file("/static/highlight.js", include_bytes!("../static/highlight.js"));
 
         if require_login {
             app.middleware(RequireLogin)
