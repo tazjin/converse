@@ -27,6 +27,7 @@ comrak = "0.2"
 md5 = "0.3.7"
 tokio = "0.1"
 tokio-timer = "0.2"
+pq-sys = "=0.4.4"
 
 [build-dependencies]
 pulldown-cmark = "0.1"
