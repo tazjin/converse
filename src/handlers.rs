@@ -24,13 +24,15 @@
 //! project root.
 
 use actix::prelude::*;
-use actix_web;
 use actix_web::*;
+use actix_web::http::Method;
 use actix_web::middleware::identity::RequestIdentity;
 use actix_web::middleware::{Started, Middleware};
+use actix_web;
 use db::*;
 use errors::ConverseError;
 use futures::Future;
+use mime_guess::guess_mime_type;
 use models::*;
 use oidc::*;
 use render::*;
@@ -296,6 +298,25 @@ pub fn callback(state: State<AppState>,
         .responder()
 }
 
+/// This is an extension trait to enable easy serving of embedded
+/// static content.
+///
+/// It is intended to be called with `include_bytes!()` when setting
+/// up the actix-web application.
+pub trait EmbeddedFile {
+    fn static_file(self, path: &'static str, content: &'static [u8]) -> Self;
+}
+
+impl EmbeddedFile for App<AppState> {
+    fn static_file(self, path: &'static str, content: &'static [u8]) -> Self {
+        self.route(path, Method::GET, move |_: HttpRequest<_>| {
+            let mime = format!("{}", guess_mime_type(path));
+            HttpResponse::Ok()
+                .content_type(mime.as_str())
+                .body(content)
+        })
+    }
+}
 
 /// Middleware used to enforce logins unceremoniously.
 pub struct RequireLogin;
