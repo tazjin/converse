@@ -203,7 +203,8 @@ fn start_http_server(base_url: String,
             .resource("/oidc/login", |r| r.method(Method::GET).with(login))
             .resource("/oidc/callback", |r| r.method(Method::POST).with3(callback))
             .static_file("/static/highlight.css", include_bytes!("../static/highlight.css"))
-            .static_file("/static/highlight.js", include_bytes!("../static/highlight.js"));
+            .static_file("/static/highlight.js", include_bytes!("../static/highlight.js"))
+            .static_file("/static/styles.css", include_bytes!("../static/styles.css"));
 
         if require_login {
             app.middleware(RequireLogin)
