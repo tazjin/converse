@@ -131,3 +131,9 @@ html, body {
 .converse .reply-box {
     padding-top: 10px;
 }
+.search-result {
+    margin: 8px;
+}
+.search-result .mdl-button {
+    margin: 3px;
+}
