@@ -1,4 +1,4 @@
-* :not(.material-icons) :not(code) {
+* :not(.material-icons, code) {
   font-family: 'Ubuntu', sans-serif !important;
 }
 
