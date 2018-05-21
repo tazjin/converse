@@ -94,3 +94,40 @@ html, body {
 .converse section.section--center {
   max-width: 860px;
 }
+.converse .mdl-card .avatar-card {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+}
+.mobile-avatar {
+    width: 30px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+.mobile-date {
+    text-decoration: none;
+}
+.converse .mdl-card .post-box {
+    margin: 20px;
+}
+.converse .mdl-card .post-actions {
+    display: flex;
+    padding-right: 5px;
+}
+.post-action {
+    margin: 5px;
+    margin-bottom: 10px;
+}
+.converse section.post-section {
+    padding: 5px;
+}
+.post-date {
+    text-decoration: none;
+    font-size: 80%;
+}
+.mdl-layout__content {
+    flex: 1 0 auto;
+}
+.converse .reply-box {
+    padding-top: 10px;
+}

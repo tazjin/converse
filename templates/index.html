@@ -44,7 +44,6 @@
                 {% for thread in threads -%}
                 <li class="mdl-list__item thread-list-item mdl-list__item--three-line">
                   <a class="thread-link mdl-color-text--grey-800" href="/thread/{{ thread.id }}">
-
                     <span class="mdl-list__item-primary-content {% if not loop.last %}thread-divider{% endif %}">
                       <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored mdl-list__item-icon">
                         <i class="material-icons">{% if thread.sticky -%} announcement {%- else -%} library_books{% endif %}</i>
