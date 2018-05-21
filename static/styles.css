@@ -1,5 +1,9 @@
-* :not(.material-icons, code) {
-  font-family: 'Ubuntu', sans-serif !important;
+* :not(.material-icons) {
+  font-family: 'Ubuntu', sans-serif;
+}
+
+code, pre, code * {
+    font-family: 'Ubuntu Mono', monospace !important;
 }
 
 .cvs-title, .thread-link {
