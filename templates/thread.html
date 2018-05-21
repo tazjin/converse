@@ -1,71 +1,110 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <!-- Custom CSS additions -->
-    <style>img { max-width:100%; height:auto; }</style>
-    <title>Converse: {{ title | safe }}</title>
-    <!-- Syntax highlighting for code -->
-    <link rel="stylesheet" href="/static/highlight.css">
-    <script src="/static/highlight.js"></script>
-  </head>
-  <body>
-    <header>
-      <nav class="navbar navbar-light bg-light justify-content-between mb-3">
-        <a class="navbar-brand" href="/">
-          <h2>Converse</h2>
-        </a>
-        <a class="btn btn-outline-secondary my-2" href="/">Back to index</a>
-      </nav>
-    </header>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <title>Converse: {{ title | safe  }}</title>
 
-    <div class="container">
-      <div class="list-group d-flex flex-column">
-        <div class="list-group-item d-flex row">
-          <h3>{{ title | safe }}</h3>
+        <!-- TODO -->
+        <meta http-equiv="Content-Security-Policy" content="script-src https://code.getmdl.io 'self';">
+        <!-- <link rel="shortcut icon" href="images/favicon.png"> -->
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu+Mono">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-orange.min.css" />
+        <link rel="stylesheet" href="/static/styles.css">
+        <!-- Syntax highlighting for code -->
+        <link rel="stylesheet" href="/static/highlight.css">
+        <style>img { max-width:100%; height:auto; }</style>
+        <script src="/static/highlight.js"></script>
+    </head>
+    <body class="converse mdl-base mdl-color-text--grey-700 mdl-color--grey-100">
+        <div class="mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
+            <header class="mdl-layout__header mdl-color--primary-dark">
+                <div class="mdl-layout__header-row">
+                    <a href="/" class="mdl-layout-title mdl-color-text--blue-grey-50 cvs-title">Converse: {{ title | safe }}</a>
+                    <div class="mdl-layout-spacer"></div>
+                    <a href="/">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect">
+                            Back to index
+                        </button>
+                    </a>
+                </div>
+            </header>
+            <main class="mdl-layout__content">
+                {% for post in posts -%}
+                    <section id="post-{{ post.id }}" class="section--center mdl-grid mdl-grid--no-spacing">
+                        {# card to display avatars on desktop #}
+                        <div class="mdl-card mdl-shadow--2dp mdl-cell--2-col mdl-cell--hide-phone mdl-cell--hide-tablet avatar-box">
+                            <div class="avatar-card">
+                                <img src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" style="width: 80px;"/>
+                                <br>
+                                <span class="user-name">{{ post.author_name }}</span>
+                            </div>
+                        </div>
+                        {# card for main post content #}
+                        <div class="mdl-card mdl-shadow--2dp post-box mdl-cell--10-col">
+                            {# card section for displaying user & post information on mobile #}
+                            <div class="mdl-card__supporting-text mdl-card--border mdl-cell--hide-desktop mdl-color-text--blue-grey-500 mobile-user">
+                                <img class="mobile-avatar" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid"/>
+                                <span>&nbsp;{{ post.author_name }} posted on </span>
+                                <a class="mdl-color-text--blue-grey-500 mobile-date" href="/thread/{{ id }}#post-{{ post.id }}">{{ post.posted }}</a>
+                            </div>
+                            {# card section to display post date on desktop #}
+                            <div class="mdl-card__menu mdl-cell--hide-phone mdl-cell--hide-tablet">
+                                <a class="post-date mdl-color-text--blue-grey-500" href="/thread/{{ id }}#post-{{ post.id }}">{{ post.posted }}</a>
+                            </div>
+                            {# card section for actual post content #}
+                            <div class="mdl-card__supporting-text post-box">{{ post.body | safe }}</div>
+                            {# card section for post actions #}
+                            <div class="mdl-card__actions post-actions">
+                                <div class="mdl-layout-spacer"></div>
+
+                                {#%- TODO if post.editable %#}
+                                <!-- <a href="/post/{{ post.id }}/edit" class="badge badge-light border m-1 p-1">Edit</a> -->
+                                {#% endif -%#}
+
+                                {% if post.editable %}
+                                    <a href="/post/{{ post.id }}/edit" class="mdl-button mdl-js-button mdl-button--accent" id="edit-post-{{ post.id }}" aria-label="Edit post">
+                                        <i class="material-icons">edit</i>
+                                        <span class="mdl-tooltip mdl-tooltip--top" for="edit-post-{{ post.id }}">Edit post</span>
+                                    </a>
+                                {% endif %}
+                                <button class="mdl-button mdl-js-button mdl-button--accent" id="quote-post-{{ post.id }}" aria-label="Quote post" disabled>
+                                    <i class="material-icons">reply</i>
+                                    <span class="mdl-tooltip mdl-tooltip--top" for="quote-post-{{ post.id }}">Quote post</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                {% endfor %}
+
+                {# section for writing a response on the same page #}
+                <section id="post-reply" class="section--center mdl-grid mdl-grid--no-spacing reply-box">
+                    <div class="mdl-card mdl-shadow--2dp mdl-cell--12-col">
+                        <form id="reply-form" action="/thread/reply" method="post">
+                            <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
+
+                            <div class="mdl-card__supporting-text">
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col">
+                                    <textarea class="mdl-textfield__input" type="text" rows="8" id="post" name="post" aria-label="reply content"></textarea>
+                                    <label class="mdl-textfield__label" for="post">Write a reply</label>
+                                </div>
+                                <button class="mdl-button mdl-button--raised mdl-button--primary mdl-js-button mdl-js-ripple-effect" type="submit">
+                                    Post!
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </main>
+            <footer class="mdl-mini-footer">
+                <div class="mdl-mini-footer--right-section">
+                    <p>Powered by <a href="https://github.com/tazjin/converse">Converse</a></p>
+                </div>
+            </footer>
         </div>
-
-        {% for post in posts -%}
-        <div id="post-{{ post.id}}" class="list-group-item d-flex row pl-0">
-          <div class="d-flex flex-column border-right col-2">
-            <img class="mx-auto" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" style="width: 80px;"/>
-            <span class="mx-auto text-center"><strong>{{ post.author_name }}</strong></span>
-          </div>
-
-          <div class="align-self-stretch col">{{ post.body | safe }}</div>
-
-          <div class="d-inline-flex flex-column align-items-end ml-auto col-1">
-            <a href="/thread/{{ id }}#post-{{ post.id }}" class="ml-auto">
-              <small class="text-muted float-right">{{ post.posted }}</small>
-            </a>
-
-            <div class="d-inline-flex flex-row mt-auto ml-auto">
-              {%- if post.editable %}
-              <a href="/post/{{ post.id }}/edit" class="badge badge-light border m-1 p-1">Edit</a>
-              {% endif -%}
-              <a href="#quote" class="badge badge-light border m-1 p-1">Quote</a>
-            </div>
-          </div>
-        </div>
-        {%- endfor %}
-
-        <div class="list-group-item flex-column align-items-start row">
-          <form id="reply-form" action="/thread/reply" method="post">
-            <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
-            <label for="body">You can use <strong>Markdown</strong>!</label>
-            <div class="input-group">
-              <textarea class="form-control" id="post" name="post" aria-label="thread response" rows="10"></textarea>
-              <div class="input-group-append">
-                <button class="btn btn-primary" type="submit">Post!</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </body>
+        <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    </body>
 </html>
