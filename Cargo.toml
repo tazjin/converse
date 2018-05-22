@@ -7,6 +7,7 @@ license = "AGPL-3.0-or-later"
 [dependencies]
 actix = "0.5"
 actix-web = "0.6"
+askama = "0.6"
 chrono = { version = "0.4", features = ["serde"] }
 comrak = "0.2"
 diesel = { version = "1.2", features = ["postgres", "chrono", "r2d2"]}
@@ -32,3 +33,4 @@ url_serde = "0.2"
 
 [build-dependencies]
 pulldown-cmark = "0.1"
+askama = "0.5"
