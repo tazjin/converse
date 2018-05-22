@@ -45,7 +45,6 @@ extern crate rand;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-extern crate tera;
 extern crate tokio;
 extern crate tokio_timer;
 extern crate url;
@@ -82,7 +81,6 @@ use oidc::OidcExecutor;
 use rand::{OsRng, Rng};
 use render::Renderer;
 use std::env;
-use tera::Tera;
 
 fn config(name: &str) -> String {
     env::var(name).expect(&format!("{} must be set", name))
@@ -133,16 +131,6 @@ fn start_oidc_executor(base_url: &str) -> Addr<Syn, OidcExecutor> {
 }
 
 fn start_renderer() -> Addr<Syn, Renderer> {
-    info!("Compiling templates ...");
-    let mut tera: Tera = Default::default();
-
-    // Include template strings into the binary instead of being
-    // location-dependent.
-    // Drawback is that template changes require recompilation ...
-    tera.add_raw_templates(vec![
-        ("search.html", include_str!("../templates/search.html")),
-    ]).expect("Could not compile templates");
-
     let comrak = comrak::ComrakOptions{
         github_pre_lang: true,
         ext_strikethrough: true,
@@ -154,7 +142,7 @@ fn start_renderer() -> Addr<Syn, Renderer> {
         ..Default::default()
     };
 
-    Renderer{ tera, comrak }.start()
+    Renderer{ comrak }.start()
 }
 
 fn gen_session_key() -> [u8; 64] {
