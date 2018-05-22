@@ -32,7 +32,6 @@ use askama;
 use diesel;
 use r2d2;
 use reqwest;
-use tera;
 use tokio_timer;
 
 pub type Result<T> = result::Result<T, ConverseError>;
@@ -50,9 +49,6 @@ pub enum ConverseError {
 
     #[fail(display = "a template rendering error occured: {}", reason)]
     Template { reason: String },
-
-    #[fail(display = "a template rendering error occured: {}", reason)]
-    Askama { reason: String },
 
     #[fail(display = "error occured during request handling: {}", error)]
     ActixWeb { error: actix_web::Error },
@@ -84,17 +80,9 @@ impl From<r2d2::Error> for ConverseError {
     }
 }
 
-impl From<tera::Error> for ConverseError {
-    fn from(error: tera::Error) -> ConverseError {
-        ConverseError::Template {
-            reason: format!("{}", error),
-        }
-    }
-}
-
 impl From<askama::Error> for ConverseError {
     fn from(error: askama::Error) -> ConverseError {
-        ConverseError::Askama {
+        ConverseError::Template {
             reason: format!("{}", error),
         }
     }

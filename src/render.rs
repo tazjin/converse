@@ -26,12 +26,10 @@ use errors::*;
 use std::fmt;
 use md5;
 use models::*;
-use tera::Tera;
 use chrono::prelude::{DateTime, Utc};
 use comrak::{ComrakOptions, markdown_to_html};
 
 pub struct Renderer {
-    pub tera: Tera,
     pub comrak: ComrakOptions,
 }
 
