@@ -21,10 +21,12 @@
 //! them.
 
 use actix::prelude::*;
+use askama::Template;
 use errors::*;
+use std::fmt;
 use md5;
 use models::*;
-use tera::{escape_html, Context, Tera};
+use tera::{escape_html, Tera};
 use chrono::prelude::{DateTime, Utc};
 use comrak::{ComrakOptions, markdown_to_html};
 
@@ -39,11 +41,11 @@ impl Actor for Renderer {
 
 /// Represents a data formatted for human consumption
 #[derive(Debug, Serialize)]
-struct FormattedDate(String);
+struct FormattedDate(DateTime<Utc>);
 
-impl From<DateTime<Utc>> for FormattedDate {
-    fn from(date: DateTime<Utc>) -> Self {
-        FormattedDate(format!("{}", date.format("%a %d %B %Y, %R")))
+impl fmt::Display for FormattedDate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0.format("%a %d %B %Y, %R"))
     }
 }
 
@@ -63,6 +65,12 @@ struct IndexThread {
     post_author: String,
 }
 
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexPageTemplate {
+    threads: Vec<IndexThread>,
+}
+
 impl Handler<IndexPage> for Renderer {
     type Result = Result<String>;
 
@@ -71,17 +79,19 @@ impl Handler<IndexPage> for Renderer {
             .into_iter()
             .map(|thread| IndexThread {
                 id: thread.thread_id,
-                title: escape_html(&thread.title),
+                title: thread.title, // escape_html(&thread.title),
                 sticky: thread.sticky,
-                posted: thread.posted.into(),
+                posted: FormattedDate(thread.posted),
                 author_name: thread.thread_author,
                 post_author: thread.post_author,
             })
             .collect();
 
-        let mut ctx = Context::new();
-        ctx.add("threads", &threads);
-        Ok(self.tera.render("index.html", &ctx)?)
+        let tpl = IndexPageTemplate {
+            threads
+        };
+
+        tpl.render().map_err(|e| e.into())
     }
 }
 
@@ -98,7 +108,7 @@ message!(ThreadPage, Result<String>);
 struct RenderablePost {
     id: i32,
     body: String,
-    posted: FormattedDate,
+    posted: String, // FormattedDate,
     author_name: String,
     author_gravatar: String,
     editable: bool,
@@ -127,7 +137,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
         RenderablePost {
             id: post.id,
             body: markdown_to_html(&post.body, comrak),
-            posted: post.posted.into(),
+            posted: format!("{}", FormattedDate(post.posted)), // post.posted.into(),
             author_name: post.author_name.clone(),
             author_gravatar: md5_hex(post.author_email.as_bytes()),
             editable,

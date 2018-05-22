@@ -17,16 +17,19 @@
 // <http://www.gnu.org/licenses/>.
 
 #[macro_use]
+extern crate askama;
+
+#[macro_use]
 extern crate diesel;
+
+#[macro_use]
+extern crate failure;
 
 #[macro_use]
 extern crate log;
 
 #[macro_use]
 extern crate serde_derive;
-
-#[macro_use]
-extern crate failure;
 
 extern crate actix;
 extern crate actix_web;
@@ -137,7 +140,6 @@ fn start_renderer() -> Addr<Syn, Renderer> {
     // location-dependent.
     // Drawback is that template changes require recompilation ...
     tera.add_raw_templates(vec![
-        ("index.html", include_str!("../templates/index.html")),
         ("post.html", include_str!("../templates/post.html")),
         ("search.html", include_str!("../templates/search.html")),
         ("thread.html", include_str!("../templates/thread.html")),
