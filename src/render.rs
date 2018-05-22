@@ -246,7 +246,8 @@ impl Handler<EditPostPage> for Renderer {
 }
 
 /// Message used to render search results
-#[derive(Serialize)]
+#[derive(Template)]
+#[template(path = "search.html")]
 pub struct SearchResultPage {
     pub query: String,
     pub results: Vec<SearchResult>,
@@ -257,6 +258,6 @@ impl Handler<SearchResultPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: SearchResultPage, _: &mut Self::Context) -> Self::Result {
-        Ok(self.tera.render("search.html", &msg)?)
+        msg.render().map_err(|e| e.into())
     }
 }
