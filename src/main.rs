@@ -140,7 +140,6 @@ fn start_renderer() -> Addr<Syn, Renderer> {
     // location-dependent.
     // Drawback is that template changes require recompilation ...
     tera.add_raw_templates(vec![
-        ("post.html", include_str!("../templates/post.html")),
         ("search.html", include_str!("../templates/search.html")),
     ]).expect("Could not compile templates");
 

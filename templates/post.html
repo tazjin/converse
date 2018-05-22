@@ -1,4 +1,4 @@
-<!-- {#
+{#
   This template is shared by the new thread, reply and post-editing pages.
 
   The main display differences between the different editing styles are the
@@ -8,7 +8,7 @@
   Every one of these pages can have a variable length list of alerts submitted
   into the template, which will be rendered as Boostrap alert boxes above the
   user input form.
-#} -->
+#}
 
 <!doctype html>
 <html lang="en">
@@ -17,7 +17,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Converse: Post</title>
 
-    <!-- TODO -->
     <meta http-equiv="Content-Security-Policy" content="script-src https://code.getmdl.io 'self';">
     <!-- <link rel="shortcut icon" href="images/favicon.png"> -->
 
@@ -31,13 +30,14 @@
       <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary-dark">
         <div class="mdl-layout__header-row">
           <a href="/" class="mdl-layout-title mdl-color-text--blue-grey-50 cvs-title">
-          {% if mode == "NewThread" %}
-          Converse: Submit new thread
-          {% elif mode == "PostReply" %}
-          Converse: Reply to thread
-          {% elif mode == "EditPost" %}
-          Converse: Edit post
-          {% endif %}
+          {% match mode %}
+            {% when EditingMode::NewThread %}
+              Converse: Submit new thread
+            {% when EditingMode::PostReply %}
+              Converse: Reply to thread
+            {% when EditingMode::EditPost %}
+              Converse: Edit post
+          {% endmatch %}
           </a>
           <div class="mdl-layout-spacer"></div>
           <a href="/">
@@ -49,34 +49,42 @@
       </header>
       <main class="mdl-layout__content mdl-grid">
         <div class="mdl-card mdl-shadow--2dp mdl-cell--8-col">
-          {% if mode == "NewThread" %}
-          <form action="/thread/submit" method="post">
-          {% elif mode == "PostReply" %}
-          <form action="/thread/reply" method="post">
-          {% elif mode == "EditPost" %}
-          <form action="/post/edit" method="post">
-          {% endif %}
-            {% if mode == "PostReply" %}
-            <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
-            {% elif mode == "EditPost" %}
-            <input type="hidden" id="thread_id" name="post_id" value="{{ id }}">
-            {% endif %}
+          {% match mode %}
+            {% when EditingMode::NewThread %}
+              <form action="/thread/submit" method="post">
+            {% when EditingMode::PostReply %}
+              <form action="/thread/reply" method="post">
+            {% when EditingMode::EditPost %}
+              <form action="/post/edit" method="post">
+          {% endmatch %}
+            {% match mode %}
+              {% when EditingMode::PostReply %}
+                <input type="hidden" id="thread_id" name="thread_id" value="{{ id.unwrap() }}">
+              {% when EditingMode::EditPost %}
+                <input type="hidden" id="thread_id" name="post_id" value="{{ id.unwrap() }}">
+              {% else %}
+                {# no post ID when making a new thread #}
+            {% endmatch %}
             <div class="mdl-card__supporting-text">
-              {%- for alert in alerts %}
+              {% for alert in alerts %}
               <span class="mdl-chip mdl-color--red-200">
                 <span class="mdl-chip__text">{{ alert }}&nbsp;</span>
               </span>
-              {% endfor -%}
-
-              {% if mode == "NewThread" %}
+              {% endfor %}
+              {% if mode == EditingMode::NewThread %}
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col">
-                <input class="mdl-textfield__input" type="text" id="title" name="title" aria-label="thread title" required {% if title %}value="{{ title }}"{% endif %}>
+                <input class="mdl-textfield__input" type="text" id="title" name="title" aria-label="thread title" required {% match title %}{% when Some with (title_text) %}value="{{ title_text }}"{% else %}{# Nothing! #}{% endmatch %}>
                 <label class="mdl-textfield__label" for="title">Thread title</label>
               </div>
               {% endif %}
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col">
                 <textarea class="mdl-textfield__input" type="text" rows="25" id="post" name="post" aria-label="post content" required>
-                  {%- if post %}{{ post }}{% endif -%}
+                  {%- match post -%}
+                    {%- when Some with (post_text) -%}
+                      {{- post_text -}}
+                    {%- else -%}
+                      {# Nothing! #}
+                  {%- endmatch -%}
                 </textarea>
                 <label class="mdl-textfield__label" for="body">Content ...</label>
               </div>

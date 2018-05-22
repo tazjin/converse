@@ -26,7 +26,7 @@ use errors::*;
 use std::fmt;
 use md5;
 use models::*;
-use tera::{escape_html, Tera};
+use tera::Tera;
 use chrono::prelude::{DateTime, Utc};
 use comrak::{ComrakOptions, markdown_to_html};
 
@@ -40,7 +40,7 @@ impl Actor for Renderer {
 }
 
 /// Represents a data formatted for human consumption
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 struct FormattedDate(DateTime<Utc>);
 
 impl fmt::Display for FormattedDate {
@@ -55,7 +55,7 @@ pub struct IndexPage {
 }
 message!(IndexPage, Result<String>);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 struct IndexThread {
     id: i32,
     title: String,
@@ -104,7 +104,7 @@ pub struct ThreadPage {
 message!(ThreadPage, Result<String>);
 
 // "Renderable" structures with data transformations applied.
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 struct RenderablePost {
     id: i32,
     body: String,
@@ -163,7 +163,7 @@ impl Handler<ThreadPage> for Renderer {
 
 /// The different types of editing modes supported by the editing
 /// template:
-#[derive(Debug, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum EditingMode {
     NewThread,
     PostReply,
@@ -174,10 +174,11 @@ impl Default for EditingMode {
     fn default() -> EditingMode { EditingMode::NewThread }
 }
 
-/// This struct represents the context submitted to the template used
-/// for rendering the new thread, edit post and reply to thread forms.
-#[derive(Default, Serialize)]
-pub struct FormContext {
+/// This is the template used for rendering the new thread, edit post
+/// and reply to thread forms.
+#[derive(Template, Default)]
+#[template(path = "post.html")]
+pub struct FormTemplate {
     /// Which editing mode is to be used by the template?
     pub mode: EditingMode,
 
@@ -212,13 +213,13 @@ impl Handler<NewThreadPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: NewThreadPage, _: &mut Self::Context) -> Self::Result {
-        let ctx = FormContext {
+        let ctx = FormTemplate {
             alerts: msg.alerts,
             title: msg.title,
             post: msg.post,
             ..Default::default()
         };
-        Ok(self.tera.render("post.html", &ctx)?)
+        ctx.render().map_err(|e| e.into())
     }
 }
 
@@ -233,14 +234,14 @@ impl Handler<EditPostPage> for Renderer {
     type Result = Result<String>;
 
     fn handle(&mut self, msg: EditPostPage, _: &mut Self::Context) -> Self::Result {
-        let ctx = FormContext {
+        let ctx = FormTemplate {
             mode: EditingMode::EditPost,
             id: Some(msg.id),
             post: Some(msg.post),
             ..Default::default()
         };
 
-        Ok(self.tera.render("post.html", &ctx)?)
+        ctx.render().map_err(|e| e.into())
     }
 }
 
