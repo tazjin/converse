@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-        <title>Converse: {{ title | safe  }}</title>
+        <title>Converse: {{ title }}</title>
 
         <!-- TODO -->
         <meta http-equiv="Content-Security-Policy" content="script-src https://code.getmdl.io 'self';">
@@ -23,7 +23,7 @@
         <div class="mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
             <header class="mdl-layout__header mdl-color--primary-dark">
                 <div class="mdl-layout__header-row">
-                    <a href="/" class="mdl-layout-title mdl-color-text--blue-grey-50 cvs-title">Converse: {{ title | safe }}</a>
+                    <a href="/" class="mdl-layout-title mdl-color-text--blue-grey-50 cvs-title">Converse: {{ title }}</a>
                     <div class="mdl-layout-spacer"></div>
                     <a href="/">
                         <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect">
@@ -35,34 +35,30 @@
             <main class="mdl-layout__content">
                 {% for post in posts -%}
                     <section id="post-{{ post.id }}" class="section--center mdl-grid mdl-grid--no-spacing">
-                        {# card to display avatars on desktop #}
+                        <!-- card to display avatars on desktop -->
                         <div class="mdl-card mdl-shadow--2dp mdl-cell--2-col mdl-cell--hide-phone mdl-cell--hide-tablet avatar-box">
                             <div class="avatar-card">
                                 <img class="desktop-avatar" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" />
                                 <p class="user-name">{{ post.author_name }}</p>
                             </div>
                         </div>
-                        {# card for main post content #}
+                        <!-- card for main post content -->
                         <div class="mdl-card mdl-shadow--2dp post-box mdl-cell--10-col">
-                            {# card section for displaying user & post information on mobile #}
+                            <!-- card section for displaying user & post information on mobile -->
                             <div class="mdl-card__supporting-text mdl-card--border mdl-cell--hide-desktop mdl-color-text--blue-grey-500 mobile-user">
                                 <img class="mobile-avatar" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid"/>
                                 <span>&nbsp;{{ post.author_name }} posted on </span>
                                 <a class="mdl-color-text--blue-grey-500 mobile-date" href="/thread/{{ id }}#post-{{ post.id }}">{{ post.posted }}</a>
                             </div>
-                            {# card section to display post date on desktop #}
+                            <!-- card section to display post date on desktop -->
                             <div class="mdl-card__menu mdl-cell--hide-phone mdl-cell--hide-tablet">
                                 <a class="post-date mdl-color-text--blue-grey-500" href="/thread/{{ id }}#post-{{ post.id }}">{{ post.posted }}</a>
                             </div>
-                            {# card section for actual post content #}
-                            <div class="mdl-card__supporting-text post-box">{{ post.body | safe }}</div>
-                            {# card section for post actions #}
+                            <!-- card section for actual post content -->
+                            <div class="mdl-card__supporting-text post-box">{{ post.body|safe }}</div>
+                            <!-- card section for post actions -->
                             <div class="mdl-card__actions post-actions">
                                 <div class="mdl-layout-spacer"></div>
-
-                                {#%- TODO if post.editable %#}
-                                <!-- <a href="/post/{{ post.id }}/edit" class="badge badge-light border m-1 p-1">Edit</a> -->
-                                {#% endif -%#}
 
                                 {% if post.editable %}
                                     <a href="/post/{{ post.id }}/edit" class="mdl-button mdl-js-button mdl-button--accent" id="edit-post-{{ post.id }}" aria-label="Edit post">
@@ -79,7 +75,7 @@
                     </section>
                 {% endfor %}
 
-                {# section for writing a response on the same page #}
+                <!-- section for writing a response on the same page -->
                 <section id="post-reply" class="section--center mdl-grid mdl-grid--no-spacing reply-box">
                     <div class="mdl-card mdl-shadow--2dp mdl-cell--12-col">
                         <form id="reply-form" action="/thread/reply" method="post">

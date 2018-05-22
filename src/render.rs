@@ -108,7 +108,7 @@ message!(ThreadPage, Result<String>);
 struct RenderablePost {
     id: i32,
     body: String,
-    posted: String, // FormattedDate,
+    posted: FormattedDate,
     author_name: String,
     author_gravatar: String,
     editable: bool,
@@ -116,7 +116,8 @@ struct RenderablePost {
 
 /// This structure represents the transformed thread data with
 /// Markdown rendering and other changes applied.
-#[derive(Debug, Serialize)]
+#[derive(Template)]
+#[template(path = "thread.html")]
 struct RenderableThreadPage {
     id: i32,
     title: String,
@@ -137,7 +138,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
         RenderablePost {
             id: post.id,
             body: markdown_to_html(&post.body, comrak),
-            posted: format!("{}", FormattedDate(post.posted)), // post.posted.into(),
+            posted: FormattedDate(post.posted),
             author_name: post.author_name.clone(),
             author_gravatar: md5_hex(post.author_email.as_bytes()),
             editable,
@@ -147,7 +148,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
     RenderableThreadPage {
         posts,
         id: page.thread.id,
-        title: escape_html(&page.thread.title),
+        title: page.thread.title,
     }
 }
 
@@ -156,7 +157,7 @@ impl Handler<ThreadPage> for Renderer {
 
     fn handle(&mut self, msg: ThreadPage, _: &mut Self::Context) -> Self::Result {
         let renderable = prepare_thread(&self.comrak, msg);
-        Ok(self.tera.render("thread.html", &renderable)?)
+        renderable.render().map_err(|e| e.into())
     }
 }
 

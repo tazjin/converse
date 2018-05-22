@@ -142,7 +142,6 @@ fn start_renderer() -> Addr<Syn, Renderer> {
     tera.add_raw_templates(vec![
         ("post.html", include_str!("../templates/post.html")),
         ("search.html", include_str!("../templates/search.html")),
-        ("thread.html", include_str!("../templates/thread.html")),
     ]).expect("Could not compile templates");
 
     let comrak = comrak::ComrakOptions{
