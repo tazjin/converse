@@ -95,9 +95,15 @@ html, body {
   max-width: 860px;
 }
 .converse .mdl-card .avatar-card {
-    margin-left: auto;
-    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
     margin-top: 30px;
+}
+.desktop-avatar {
+    width: 80px;
+    margin-right: auto;
+    margin-left: auto;
 }
 .mobile-avatar {
     width: 30px;
