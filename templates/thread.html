@@ -38,9 +38,8 @@
                         {# card to display avatars on desktop #}
                         <div class="mdl-card mdl-shadow--2dp mdl-cell--2-col mdl-cell--hide-phone mdl-cell--hide-tablet avatar-box">
                             <div class="avatar-card">
-                                <img src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" style="width: 80px;"/>
-                                <br>
-                                <span class="user-name">{{ post.author_name }}</span>
+                                <img class="desktop-avatar" src="https://www.gravatar.com/avatar/{{ post.author_gravatar }}?d=monsterid&s=160" />
+                                <p class="user-name">{{ post.author_name }}</p>
                             </div>
                         </div>
                         {# card for main post content #}
