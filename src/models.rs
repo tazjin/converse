@@ -39,6 +39,7 @@ pub struct Thread {
     pub posted: DateTime<Utc>,
     pub sticky: bool,
     pub user_id: i32,
+    pub closed: bool,
 }
 
 #[derive(Identifiable, Queryable, Serialize, Associations)]
