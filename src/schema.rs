@@ -33,6 +33,7 @@ table! {
         posted -> Timestamptz,
         sticky -> Bool,
         user_id -> Int4,
+        closed -> Bool,
     }
 }
 
