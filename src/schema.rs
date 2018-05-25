@@ -54,6 +54,7 @@ table! {
         body -> Text,
         posted -> Timestamptz,
         user_id -> Int4,
+        closed -> Bool,
         author_name -> Text,
         author_email -> Text,
     }
@@ -67,6 +68,7 @@ table! {
         thread_author -> Text,
         created -> Timestamptz,
         sticky -> Bool,
+        closed -> Bool,
         post_id -> Int4,
         post_author -> Text,
         posted -> Timestamptz,

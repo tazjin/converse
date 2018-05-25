@@ -63,6 +63,7 @@ pub struct SimplePost {
     pub body: String,
     pub posted: DateTime<Utc>,
     pub user_id: i32,
+    pub closed: bool,
     pub author_name: String,
     pub author_email: String,
 }
@@ -77,6 +78,7 @@ pub struct ThreadIndex {
     pub thread_author: String,
     pub created: DateTime<Utc>,
     pub sticky: bool,
+    pub closed: bool,
     pub post_id: i32,
     pub post_author: String,
     pub posted: DateTime<Utc>,

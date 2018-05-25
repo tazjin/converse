@@ -58,6 +58,7 @@ struct IndexThread {
     id: i32,
     title: String,
     sticky: bool,
+    closed: bool,
     posted: FormattedDate,
     author_name: String,
     post_author: String,
@@ -79,6 +80,7 @@ impl Handler<IndexPage> for Renderer {
                 id: thread.thread_id,
                 title: thread.title, // escape_html(&thread.title),
                 sticky: thread.sticky,
+                closed: thread.closed,
                 posted: FormattedDate(thread.posted),
                 author_name: thread.thread_author,
                 post_author: thread.post_author,
@@ -119,6 +121,7 @@ struct RenderablePost {
 struct RenderableThreadPage {
     id: i32,
     title: String,
+    closed: bool,
     posts: Vec<RenderablePost>,
 }
 
@@ -145,6 +148,7 @@ fn prepare_thread(comrak: &ComrakOptions, page: ThreadPage) -> RenderableThreadP
 
     RenderableThreadPage {
         posts,
+        closed: page.thread.closed,
         id: page.thread.id,
         title: page.thread.title,
     }
