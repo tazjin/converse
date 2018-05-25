@@ -46,7 +46,15 @@
                   <a class="thread-link mdl-color-text--grey-800" href="/thread/{{ thread.id }}">
                     <span class="mdl-list__item-primary-content {% if loop.index < threads.len() %}thread-divider{% endif %}">
                       <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored mdl-list__item-icon">
-                        <i class="material-icons">{% if thread.sticky %}announcement{% else %}library_books{% endif %}</i>
+                        <i class="material-icons">
+                          {% if thread.sticky %}
+                            announcement
+                          {% else if thread.closed %}
+                            lock
+                          {% else %}
+                            library_books
+                          {% endif %}
+                        </i>
                       </button>
                       <span class="thread-title">{{ thread.title }}<span class="thread-author"> by {{ thread.author_name }}</span></span>
                       <span class="mdl-list__item-text-body">
