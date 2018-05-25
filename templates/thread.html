@@ -78,6 +78,11 @@
                 <!-- section for writing a response on the same page -->
                 <section id="post-reply" class="section--center mdl-grid mdl-grid--no-spacing reply-box">
                     <div class="mdl-card mdl-shadow--2dp mdl-cell--12-col">
+                        {% if closed %}
+                        <div class="mdl-card__supporting-text">
+                            This thread is <b>closed</b> and can no longer be responded to.
+                        </div>
+                        {% else %}
                         <form id="reply-form" action="/thread/reply" method="post">
                             <input type="hidden" id="thread_id" name="thread_id" value="{{ id }}">
 
@@ -91,6 +96,7 @@
                                 </button>
                             </div>
                         </form>
+                        {% endif %}
                     </div>
                 </section>
             </main>
