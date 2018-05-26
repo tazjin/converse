@@ -207,7 +207,10 @@ pub fn edit_form(state: State<AppState>,
                 return Ok(post);
             }
 
-            Err(ConverseError::PostEditForbidden { id: post.id })
+            Err(ConverseError::PostEditForbidden {
+                user: user_id,
+                id: post.id,
+            })
         })
         .and_then(move |post| {
             let edit_msg = EditPostPage {
@@ -236,7 +239,10 @@ pub fn edit_post(state: State<AppState>,
             if user_id != 1 && post.user_id == user_id {
                  Ok(())
             } else {
-                Err(ConverseError::PostEditForbidden { id: post.id })
+                Err(ConverseError::PostEditForbidden {
+                    user: user_id,
+                    id: post.id,
+                })
             }
         })
         .and_then(move |_| state.db.send(update.0).from_err())
