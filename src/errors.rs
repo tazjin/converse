@@ -56,8 +56,11 @@ pub enum ConverseError {
     #[fail(display = "error occured running timer: {}", error)]
     Timer { error: tokio_timer::Error },
 
-    #[fail(display = "user does not have permission to edit post {}", id)]
-    PostEditForbidden { id: i32 },
+    #[fail(display = "user {} does not have permission to edit post {}", user, id)]
+    PostEditForbidden { user: i32, id: i32 },
+
+    #[fail(display = "thread {} is closed and can not be responded to", id)]
+    ThreadClosed { id: i32 },
 
     // This variant is used as a catch-all for wrapping
     // actix-web-compatible response errors, such as the errors it
@@ -119,7 +122,12 @@ impl From<tokio_timer::Error> for ConverseError {
 impl ResponseError for ConverseError {
     fn error_response(&self) -> HttpResponse {
         // Everything is mapped to internal server errors for now.
-        HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
-            .body(format!("An error occured: {}", self))
+        match *self {
+            ConverseError::ThreadClosed { id } => HttpResponse::SeeOther()
+                .header("Location", format!("/thread/{}#edit-post", id))
+                .finish(),
+            _ => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("An error occured: {}", self))
+        }
     }
 }
