@@ -208,6 +208,19 @@ impl Handler<CreatePost> for DbExecutor {
 
         let conn = self.0.get()?;
 
+        let closed: bool = {
+            use schema::threads::dsl::*;
+            threads.select(closed)
+                .find(msg.0.thread_id)
+                .first(&conn)?
+        };
+
+        if closed {
+            return Err(ConverseError::ThreadClosed {
+                id: msg.0.thread_id
+            })
+        }
+
         Ok(diesel::insert_into(posts::table)
            .values(&msg.0)
            .get_result(&conn)?)
