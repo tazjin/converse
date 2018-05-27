@@ -124,7 +124,7 @@ impl ResponseError for ConverseError {
         // Everything is mapped to internal server errors for now.
         match *self {
             ConverseError::ThreadClosed { id } => HttpResponse::SeeOther()
-                .header("Location", format!("/thread/{}#edit-post", id))
+                .header("Location", format!("/thread/{}#post-reply", id))
                 .finish(),
             _ => HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(format!("An error occured: {}", self))
